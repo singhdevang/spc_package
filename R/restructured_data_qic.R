@@ -1,32 +1,26 @@
-
-#Function 2 to structure data using qic which will later be used for plotting
-restructured_data_qic <- function(data, date_col, measure_col, chart_type) { # date_col for x axis and measure_col for y axis
-
-  # Create qic object for the specified chart type using dynamic column names
-  chart <- qic(data[[date_col]], data[[measure_col]], chart = chart_type)
+#' Create SPC Data
+#'
+#' This function creates a Statistical Process Control chart data and ensures LCL values are not negative.
+#' @param data Data frame containing the data
+#' @param date_col Name of the date column
+#' @param value_col Name of the value column
+#' @param chart_type Type of SPC chart to create
+#' @return Returns a data frame with SPC data including adjusted LCL values.
+#' @export
+#' @importFrom qicharts2 qic
+#' @examples
+#' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
+#'                    value = rnorm(30, 100, 15))
+#' create_spc_data(data, 'date', 'value', 'xbar')
+create_spc_data <- function(data, date_col, value_col, chart_type) {
+  # Create the control chart using qic function from qicharts2
+  # Automatically plots, but we will extract data from the plot object for further manipulation
+  chart <- qic(data[[date_col]], data[[value_col]], data = data, chart = chart_type)
 
   # Prepare data for plotting and ensure LCL values are not less than 0
   chart_data <- chart$data
-  chart_data$lcl <- pmax(chart_data$lcl, 0)  # Replace negative LCL values with 0
+  chart_data$lcl <- pmax(chart_data$lcl, 0)
 
-  # Mutate the 'x' column to Date format within the data argument
-  chart_data <- chart_data |>
-    mutate(x = as.Date(x, format = "%Y-%m-%d"))
-
+  # Return the updated data frame
   return(chart_data)
-}
-
-#' Restructure Data for QIC
-#'
-#' This function restructures the data for quality improvement charts (QIC) and ensures LCL values are not less than 0.
-#' @param data A data frame containing the data.
-#' @param date_col The name of the column in `data` containing date values.
-#' @param measure_col The name of the column in `data` containing measurement values.
-#' @param chart_type The type of chart to be created.
-#' @return A data frame prepared for plotting.
-#' @export
-#' @examples
-#' restructured_data_qic(data, "date", "measure", "u-chart")
-restructured_data_qic <- function(data, date_col, measure_col, chart_type) {
-  # function body remains the same
 }
