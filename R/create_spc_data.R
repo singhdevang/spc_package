@@ -1,15 +1,13 @@
 #' Create SPC Data
 #'
 #' This function creates a Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
-#' It includes a 'shift' column indicating whether the data point's value is below or equal to the center line (CL).
-#' Additionally, a 'trend' column is added to show whether each subsequent value of 'y' is greater than its predecessor.
-#' Values in 'trend' are TRUE if the value is increasing, NA if constant, and FALSE if decreasing.
+#' It includes multiple statistical calculations such as shift detection, trend analysis, and sigma levels with control limits.
 #'
 #' @param data Data frame containing the data
 #' @param date_col Name of the date column
 #' @param value_col Name of the value column
 #' @param chart_type Type of SPC chart to create
-#' @return Returns a data frame with SPC data including adjusted LCL values, 'shift' and 'trend' status columns.
+#' @return Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations, and additional control limit assessments.
 #' @export
 #' @importFrom qicharts2 qic
 #' @importFrom lubridate parse_date_time
@@ -25,7 +23,7 @@ create_spc_data <- function(data, date_col, value_col, chart_type) {
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
                                                  "ydm_HMS", "ydm_HM", "ydm_H", "ydm"))
 
-  # Proceed with creating the SPC chart using qic function from qicharts2
+  # Create the SPC chart using qic function from qicharts2
   chart <- qic(data[[date_col]], data[[value_col]], data = data, chart = chart_type)
 
   # Prepare data for plotting and ensure LCL values are not less than 0
@@ -37,14 +35,21 @@ create_spc_data <- function(data, date_col, value_col, chart_type) {
 
   # Calculate trend column comparing consecutive y values
   chart_data$trend <- c(NA, ifelse(diff(chart_data$y) > 0, TRUE, ifelse(diff(chart_data$y) == 0, NA, FALSE)))
+  chart_data$trend[1] <- chart_data$trend[2] # Copy second value to first or set to FALSE if NA
 
-  # Set the first entry of trend to be the same as the second entry
-  if (!is.na(chart_data$trend[2])) {
-    chart_data$trend[1] <- chart_data$trend[2]
-  } else {
-    # This handles the case if the second value is NA; the first value then defaults to FALSE
-    chart_data$trend[1] <- FALSE
-  }
+  # Calculate sigma and sigma-based control limits
+  chart_data$sigma <- (chart_data$ucl - chart_data$cl) / 3
+  chart_data$cl_plus_1sigma <- chart_data$cl + chart_data$sigma
+  chart_data$cl_plus_2sigma <- chart_data$cl + 2 * chart_data$sigma
+  chart_data$cl_minus_1sigma <- chart_data$cl - chart_data$sigma
+  chart_data$cl_minus_2sigma <- chart_data$cl - 2 * chart_data$sigma
+
+  # Define fifteen_more based on sigma limits
+  chart_data$fifteen_more <- ifelse(chart_data$shift, chart_data$y < chart_data$cl_minus_1sigma, FALSE)
+
+  # Define two_more based on two sigma limits and control limits
+  chart_data$two_more <- ifelse(chart_data$shift, chart_data$y > chart_data$cl_minus_2sigma & chart_data$y < chart_data$lcl,
+                                ifelse(!chart_data$shift, chart_data$y > chart_data$cl_plus_2sigma & chart_data$y < chart_data$ucl, FALSE))
 
   # Return the updated data frame
   return(chart_data)
