@@ -1,3 +1,30 @@
+#' Create a Customized SPC Chart
+#'
+#' This function generates a statistical process control (SPC) chart from provided SPC data.
+#' It ensures that date columns are treated as categorical variables, allowing each unique
+#' date to be plotted without summarization. The function colors various components of the
+#' chart and uses discrete scaling for the x-axis to display all unique dates.
+#'
+#' @param data A data frame containing the SPC data including at least the columns 'x' for dates,
+#'        'y' for the measurement values, 'cl' for the centerline, 'lcl' for the lower control limit,
+#'        and 'ucl' for the upper control limit.
+#' @param chart_title A character string representing the title of the chart.
+#' @return A ggplot object representing the SPC chart with categorical date handling and
+#'         customized aesthetics.
+#' @export
+#' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme
+#' @importFrom lubridate parse_date_time
+#' @importFrom grDevices rgb
+#' @examples
+#' data <- data.frame(
+#'   x = seq(as.Date("2021-01-01"), by = "month", length.out = 12),
+#'   y = rnorm(12, 100, 10),
+#'   cl = 100,
+#'   lcl = 85,
+#'   ucl = 115
+#' )
+#' chart <- make_chart(data, "Monthly SPC Chart")
+#' print(chart)
 make_chart <- function(data, chart_title) {
   # Ensure that 'x' is a Date object if not already
   if (!inherits(data$x, "Date")) {
@@ -34,7 +61,7 @@ make_chart <- function(data, chart_title) {
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +  # Explicitly set breaks and labels
     theme_minimal(base_family = "sans") +
     theme(
-      plot.title = element_text(color = colors$title, size = 16, hjust = 0.5),
+      plot.title = element_text(color = colors$title, size = 14, hjust = 0.5),
       plot.background = element_blank(),
       panel.grid = element_blank(),
       panel.background = element_blank(),

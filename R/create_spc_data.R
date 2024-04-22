@@ -28,6 +28,9 @@ create_spc_data <- function(data, date_col, value_col, chart_type) {
   chart_data <- chart$data
   chart_data$lcl <- pmax(chart_data$lcl, 0)
 
+  # Add shift column where shift is TRUE if y is less than cl
+  chart_data$shift <- chart_data$y < chart_data$cl
+
   # Return the updated data frame
   return(chart_data)
 }
