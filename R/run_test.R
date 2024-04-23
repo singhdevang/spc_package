@@ -9,7 +9,7 @@
 #' @param chart_title A character string representing the title of the chart.
 #' @return A ggplot object representing the SPC chart with customized aesthetics.
 #' @export
-#' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme element_text element_blank
+#' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme element_text element_blank scale_fill_manual
 #' @importFrom grDevices rgb
 #' @examples
 #' data <- create_spc_data(your_data_frame, 'date', 'value', 'xbar')
@@ -34,22 +34,27 @@ run_test <- function(data, chart_title) {
     lcl_ucl = rgb(190, 190, 190, maxColorValue = 255),
     title = rgb(27, 87, 104, maxColorValue = 255),
     annotation = rgb(40, 40, 40, maxColorValue = 255),
-    special = "red",
-    shift_pattern = "blue",
-    fifteen_more = "green",
-    trend_stability = "black",
-    two_of_three = "pink"
+    special = rgb(157,15,78, maxColorValue = 255),
+    shift_pattern = rgb(153,215,216, maxColorValue = 255),
+    fifteen_more = rgb(255,225,138, maxColorValue = 255),
+    trend_stability = rgb(190,190,190, maxColorValue = 255),
+    two_of_three = rgb(190,114,157,maxColorValue = 255)
   )
 
-  # Color assignments for different conditions
-  fill_colors <- rep("white", nrow(data))  # Default fill color
+  # Assign condition names for the legend and corresponding colors
+  fill_conditions <- rep("Normal", nrow(data))  # Default condition name
+  fill_colors <- rep(colors$y, nrow(data))  # Default color
+
+  # Conditionally assign names and colors based on data signals
+  fill_conditions[data$sigma.signal] <- "Sigma Signal"
   fill_colors[data$sigma.signal] <- colors$special
 
-  # Long runs in shift
+  # Example for shifts
   rle_shift <- rle(data$shift)
   long_shift_runs <- which(rle_shift$lengths >= 8)
   for (i in long_shift_runs) {
     indices <- sum(rle_shift$lengths[1:(i-1)]) + 1: rle_shift$lengths[i]
+    fill_conditions[indices] <- "Shift Pattern"
     fill_colors[indices] <- colors$shift_pattern
   }
 
@@ -58,7 +63,8 @@ run_test <- function(data, chart_title) {
   long_fifteen_runs <- which(rle_fifteen$values == TRUE & rle_fifteen$lengths >= 15)
   for (i in long_fifteen_runs) {
     indices <- sum(rle_fifteen$lengths[1:(i-1)]) + 1: rle_fifteen$lengths[i]
-    fill_colors[indices] <- colors$fifteen_more
+    fill_conditions[indices] <- "15+"
+    fill_conditions[indices] <- colors$fifteen_more
   }
 
   # Stability in trend
@@ -66,6 +72,7 @@ run_test <- function(data, chart_title) {
   long_trend_runs <- which(rle_trend$lengths >= 6)
   for (i in long_trend_runs) {
     indices <- sum(rle_trend$lengths[1:(i-1)]) + 1: rle_trend$lengths[i]
+    fill_conditions[indices] <- "Trend"
     fill_colors[indices] <- colors$trend_stability
   }
 
@@ -76,13 +83,20 @@ run_test <- function(data, chart_title) {
   #  }
   # }
 
-  # Create the plot with ggplot2
-  p <- ggplot(data, aes(x = x)) +
+  # Create the plot
+  p <- ggplot(data, aes(x = x, y = y, fill = fill_conditions)) +
     geom_line(aes(y = cl, group = 1), color = colors$cl, size = 1.25) +
     geom_line(aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
     geom_line(aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
-    geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +
-    geom_point(aes(y = y), color = colors$y, fill = fill_colors, shape = 21, size = 3) +
+    geom_line(color = colors$y, size = 1.25, group = 1) +
+    geom_point(shape = 21, size = 3, color = colors$y) +
+    scale_fill_manual(values = c(
+      "Normal" = colors$y,
+      "Sigma Signal" = colors$special,
+      "Shift Pattern" = colors$shift_pattern,
+      "15+" = colors$fifteen_more,
+      "Trend" = colors$trend_stability
+    ), name = "Conditions") +
     labs(title = chart_title) +
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +
     theme_minimal(base_family = "sans") +
