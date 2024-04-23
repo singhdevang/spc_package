@@ -34,8 +34,11 @@ create_spc_data <- function(data, date_col, value_col, chart_type) {
   chart_data$shift <- ifelse(chart_data$y == chart_data$cl, NA, chart_data$y < chart_data$cl)
 
   # Calculate trend column comparing consecutive y values
-  chart_data$trend <- c(NA, ifelse(diff(chart_data$y) > 0, TRUE, ifelse(diff(chart_data$y) == 0, NA, FALSE)))
-  chart_data$trend[1] <- chart_data$trend[2] # Copy second value to first or set to FALSE if NA
+  differences <- c(diff(chart_data$y), NA)  # Append NA for the last difference
+  chart_data$trend <- ifelse(differences < 0, TRUE, ifelse(differences > 0, FALSE, NA))
+
+  # Ensure the last value in the trend column copies the one above it
+  chart_data$trend[length(chart_data$trend)] <- chart_data$trend[length(chart_data$trend) - 1]
 
   # Calculate sigma and sigma-based control limits
   chart_data$sigma <- (chart_data$ucl - chart_data$cl) / 3
@@ -45,7 +48,11 @@ create_spc_data <- function(data, date_col, value_col, chart_type) {
   chart_data$cl_minus_2sigma <- chart_data$cl - 2 * chart_data$sigma
 
   # Define fifteen_more based on sigma limits
-  chart_data$fifteen_more <- ifelse(chart_data$shift, chart_data$y < chart_data$cl_minus_1sigma, FALSE)
+  chart_data$fifteen_more <- ifelse(
+    chart_data$shift,
+    chart_data$y > chart_data$cl_minus_1sigma,  # Condition when shift is TRUE
+    chart_data$y < chart_data$cl_plus_1sigma    # Condition when shift is FALSE
+  )
 
   # Define two_more based on two sigma limits and control limits
   chart_data$two_more <- ifelse(chart_data$shift, chart_data$y > chart_data$cl_minus_2sigma & chart_data$y < chart_data$lcl,
