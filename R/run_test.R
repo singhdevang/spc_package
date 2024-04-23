@@ -38,12 +38,13 @@ run_test <- function(data, chart_title) {
     shift_pattern = rgb(153,215,216, maxColorValue = 255),
     fifteen_more = rgb(255,225,138, maxColorValue = 255),
     trend_stability = rgb(190,190,190, maxColorValue = 255),
+    normal = rgb(255,255,255, maxColorValue = 255),
     two_of_three = rgb(190,114,157,maxColorValue = 255)
   )
 
   # Assign condition names for the legend and corresponding colors
   fill_conditions <- rep("Normal", nrow(data))  # Default condition name
-  fill_colors <- rep(colors$y, nrow(data))  # Default color
+  fill_colors <- rep(colors$normal, nrow(data))  # Default color
 
   # Conditionally assign names and colors based on data signals
   fill_conditions[data$sigma.signal] <- "Sigma Signal"
@@ -91,12 +92,13 @@ run_test <- function(data, chart_title) {
     geom_line(color = colors$y, size = 1.25, group = 1) +
     geom_point(shape = 21, size = 3, color = colors$y) +
     scale_fill_manual(values = c(
-      "Normal" = colors$y,
+       "Normal" = colors$normal,
       "Sigma Signal" = colors$special,
       "Shift Pattern" = colors$shift_pattern,
       "15+" = colors$fifteen_more,
       "Trend" = colors$trend_stability
-    ), name = "Conditions") +
+    ),  name = NULL) +
+    #guides(fill = guide_legend(override.aes = list(alpha = c(0, 1, 1, 1, 1)))) +  # Set alpha for "Normal" to 0
     labs(title = chart_title) +
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +
     theme_minimal(base_family = "sans") +
@@ -105,6 +107,8 @@ run_test <- function(data, chart_title) {
       plot.background = element_blank(),
       panel.grid = element_blank(),
       panel.background = element_blank(),
+      legend.position = "bottom",
+      legend.justification = "left",
       axis.title = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, color = "darkgray"),
       axis.text.y = element_text(color = "darkgray"),
