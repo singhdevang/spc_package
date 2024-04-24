@@ -2,20 +2,36 @@
 % Please edit documentation in R/interpret.R
 \name{interpret}
 \alias{interpret}
-\title{Interpret SPC Data}
+\title{Interpret SPC Data for Special Cause Variations}
 \usage{
 interpret(data)
 }
 \arguments{
-\item{data}{A data frame containing the SPC data including at least the columns 'x' for dates,
-'y' for the measurement values, and additional calculated columns for analysis.}
+\item{data}{A data frame containing SPC data, expected to include the columns \code{x} for the time or date,
+\code{shift}, \code{trend}, \code{fifteen_more}, and \code{sigma.signal}, which are logical vectors indicating where these
+conditions are met.}
 }
 \value{
-A data frame with columns "Special Cause Variation" and "Duration" indicating the type
-of variation and the corresponding range of dates.
+Returns a data frame with two columns: \code{SpecialCauseVariation}, which describes the type of
+variation detected, and \code{Duration}, which provides the duration or the specific point of occurrence
+for sigma signals. For interactive sessions, the results are also displayed using \code{View} or \code{print}.
 }
 \description{
-This function interprets the SPC data to detect special cause variations such as shifts, trends,
-15+ consecutive points, and sigma signals. It outputs a table summarizing these findings with
-the range of occurrences.
+This function analyzes SPC data generated from \code{create_spc_data} to detect special cause variations
+such as shifts, trends, and excessive deviations. It identifies significant events based on predefined
+criteria and displays these events in a tabular format indicating the type of variation and its
+duration or specific occurrence point.
+}
+\examples{
+# Assuming 'spc_data' is a dataframe obtained from `create_spc_data` function
+spc_data <- data.frame(
+  x = seq(as.Date("2020-01-01"), by = "month", length.out = 24),
+  shift = c(rep(FALSE, 10), rep(TRUE, 8), rep(FALSE, 6)),
+  trend = c(rep(FALSE, 5), rep(TRUE, 10), rep(FALSE, 9)),
+  fifteen_more = c(rep(FALSE, 15), rep(TRUE, 5), rep(FALSE, 4)),
+  sigma.signal = c(rep(FALSE, 20), rep(TRUE, 4))
+)
+interpreted_data <- interpret(spc_data)
+print(interpreted_data)
+
 }
