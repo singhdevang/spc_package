@@ -50,13 +50,31 @@ run_test <- function(data, chart_title) {
   fill_conditions[data$sigma.signal] <- "Sigma Signal"
   fill_colors[data$sigma.signal] <- colors$special
 
-  # Example for shifts
-  rle_shift <- rle(data$shift)
+  # Function to compute RLE while skipping NAs
+  compute_rle_skip_na <- function(shift_data) {
+    na_positions <- is.na(shift_data)
+    clean_shift_data <- shift_data[!na_positions]  # Remove NAs
+
+    rle_data <- rle(clean_shift_data)  # Compute RLE on cleaned data
+    return(list(lengths = rle_data$lengths, values = rle_data$values, na_positions = na_positions))
+  }
+
+  # Use this function in your run_test function
+  rle_shift <- compute_rle_skip_na(data$shift)
+
+  # Example of processing RLE data, specifically targeting runs of length 8 or more
   long_shift_runs <- which(rle_shift$lengths >= 8)
   for (i in long_shift_runs) {
     indices <- sum(rle_shift$lengths[1:(i-1)]) + 1: rle_shift$lengths[i]
-    fill_conditions[indices] <- "Shift"
-    fill_colors[indices] <- colors$shift_pattern
+
+    # Convert indices back to include NAs
+    actual_indices <- which(!rle_shift$na_positions)
+    real_indices <- actual_indices[indices]
+
+    fill_conditions[real_indices] <- "Shift"
+    fill_colors[real_indices] <- colors$shift_pattern
+
+
   }
 
   # Long runs in fifteen_more
@@ -68,14 +86,33 @@ run_test <- function(data, chart_title) {
     fill_conditions[indices] <- colors$fifteen_more
   }
 
-  # Stability in trend
-  rle_trend <- rle(data$trend)
+  # Function to compute RLE while skipping NAs
+  compute_rle_skip_na_trend <- function(differences) {
+    na_positions <- is.na(differences)
+    clean_differences <- differences[!na_positions]  # Remove NAs
+
+    trends <- ifelse(clean_differences < 0, TRUE, ifelse(clean_differences > 0, FALSE, NA))
+    rle_trends <- rle(trends)  # Compute RLE on cleaned trends data
+
+    return(list(lengths = rle_trends$lengths, values = rle_trends$values, na_positions = na_positions))
+  }
+  # Compute differences and apply RLE skipping NA for trend analysis
+  differences <- c(diff(data$y), NA)  # Calculate differences and append NA for the last value
+  rle_trend <- compute_rle_skip_na_trend(differences)
+
+  # Identify long trend runs (example: 6 or more consecutive)
   long_trend_runs <- which(rle_trend$lengths >= 6)
   for (i in long_trend_runs) {
     indices <- sum(rle_trend$lengths[1:(i-1)]) + 1: rle_trend$lengths[i]
-    fill_conditions[indices] <- "Trend"
-    fill_colors[indices] <- colors$trend_stability
+
+    # Convert indices back to include NAs
+    actual_indices <- which(!rle_trend$na_positions)
+    real_indices <- actual_indices[indices]
+
+    fill_conditions[real_indices] <- "Trend"
+    fill_colors[real_indices] <- colors$trend_stability
   }
+
 
   # Two out of three in two_more
   #for (i in 3:nrow(data)) {
