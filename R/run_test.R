@@ -7,6 +7,9 @@
 #'        'y' for the measurement values, 'cl' for the centerline, 'lcl' for the lower control limit,
 #'        'ucl' for the upper control limit, and various signal columns.
 #' @param chart_title A character string representing the title of the chart.
+#' @param chart_title_size Numeric value defaulted at 14 but can be changed according to need
+#' @param caption Character string that can be used to enter source of the data on bottom right
+#' @param caption_size Numeric value that is defaulted at 8 but can be used to change size of caption
 #' @return A ggplot object representing the SPC chart with customized aesthetics.
 #' @export
 #' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme element_text element_blank scale_fill_manual
@@ -14,7 +17,7 @@
 #' @examples
 #' data <- create_spc_data(your_data_frame, 'date', 'value', 'xbar')
 #' run_test(data, "Comprehensive Monthly SPC Chart")
-run_test <- function(data, chart_title) {
+run_test <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8) {
   # Ensure 'x' is a Date object
   if (!inherits(data$x, "Date")) {
     data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
@@ -140,7 +143,7 @@ run_test <- function(data, chart_title) {
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +
     theme_minimal(base_family = "sans") +
     theme(
-      plot.title = element_text(color = colors$title, size = 14, hjust = 0.5),
+      plot.title = element_text(color = colors$title, size = chart_title_size, hjust = 0.5),
       plot.background = element_blank(),
       panel.grid = element_blank(),
       panel.background = element_blank(),
@@ -150,8 +153,17 @@ run_test <- function(data, chart_title) {
       axis.text.y = element_text(color = "darkgray"),
       axis.ticks = element_line(color = "darkgray"),
       axis.line = element_line(color = "darkgray"),
-      plot.caption = element_text(size = 10, color = "gray", hjust = 1)
+      plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1,family = "Arial"),
+      plot.caption.position = "plot"
     )
+  # Conditionally add chart title if provided
+  if (chart_title != "") {
+    p <- p + labs(title = chart_title)
+  }
 
+  # Conditionally add caption if provided
+  if (caption != "") {
+    p <- p + labs(caption = caption)
+  }
   return(p)
 }

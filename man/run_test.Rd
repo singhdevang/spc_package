@@ -4,7 +4,13 @@
 \alias{run_test}
 \title{Run SPC Chart Test with Advanced Highlighting}
 \usage{
-run_test(data, chart_title)
+run_test(
+  data,
+  chart_title = "",
+  chart_title_size = 14,
+  caption = "",
+  caption_size = 8
+)
 }
 \arguments{
 \item{data}{A data frame containing the SPC data including at least the columns 'x' for dates,
@@ -12,6 +18,12 @@ run_test(data, chart_title)
 'ucl' for the upper control limit, and various signal columns.}
 
 \item{chart_title}{A character string representing the title of the chart.}
+
+\item{chart_title_size}{Numeric value defaulted at 14 but can be changed according to need}
+
+\item{caption}{Character string that can be used to enter source of the data on bottom right}
+
+\item{caption_size}{Numeric value that is defaulted at 8 but can be used to change size of caption}
 }
 \value{
 A ggplot object representing the SPC chart with customized aesthetics.

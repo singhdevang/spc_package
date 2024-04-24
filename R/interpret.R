@@ -12,8 +12,6 @@
 #' @return Returns a data frame with two columns: `SpecialCauseVariation`, which describes the type of
 #'   variation detected, and `Duration`, which provides the duration or the specific point of occurrence
 #'   for sigma signals. For interactive sessions, the results are also displayed using `View` or `print`.
-#'
-#' @importFrom stats rle
 #' @examples
 #' # Assuming 'spc_data' is a dataframe obtained from `create_spc_data` function
 #' spc_data <- data.frame(

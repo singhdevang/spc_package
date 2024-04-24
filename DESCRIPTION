@@ -1,5 +1,5 @@
 Package: devangg
-Title: What the Package Does (One Line, Title Case)
+Title: Package Creates SPC Dataframe, Plots it in Improvement Cymru Brand Guidelines, 
 Version: 0.0.0.9000
 Authors@R: 
     person("Devang", "Singh", email = "devang.singh@wales.nhs.uk", role = c("aut", "cre"), comment = c(ORCID = "YOUR-ORCID-ID"))
