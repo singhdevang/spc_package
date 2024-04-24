@@ -55,7 +55,7 @@ run_test <- function(data, chart_title) {
   long_shift_runs <- which(rle_shift$lengths >= 8)
   for (i in long_shift_runs) {
     indices <- sum(rle_shift$lengths[1:(i-1)]) + 1: rle_shift$lengths[i]
-    fill_conditions[indices] <- "Shift Pattern"
+    fill_conditions[indices] <- "Shift"
     fill_colors[indices] <- colors$shift_pattern
   }
 
@@ -85,20 +85,20 @@ run_test <- function(data, chart_title) {
   # }
 
   # Create the plot
-  p <- ggplot(data, aes(x = x, y = y, fill = fill_conditions)) +
+  p <- ggplot(data, aes(x = x, y = y)) +
     geom_line(aes(y = cl, group = 1), color = colors$cl, size = 1.25) +
     geom_line(aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
     geom_line(aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
     geom_line(color = colors$y, size = 1.25, group = 1) +
-    geom_point(shape = 21, size = 3, color = colors$y) +
+    geom_point(aes(fill = fill_conditions), shape = 21, size = 3, color = colors$y) +
     scale_fill_manual(values = c(
-       "Normal" = colors$normal,
+      "Normal" = colors$normal,  # explicitly maintain the color mapping
       "Sigma Signal" = colors$special,
-      "Shift Pattern" = colors$shift_pattern,
+      "Shift" = colors$shift_pattern,
       "15+" = colors$fifteen_more,
       "Trend" = colors$trend_stability
-    ),  name = NULL) +
-    #guides(fill = guide_legend(override.aes = list(alpha = c(0, 1, 1, 1, 1)))) +  # Set alpha for "Normal" to 0
+    ), name = NULL) +
+    #guides(fill = guide_legend(override.aes = list(alpha = c(0, 1, 1, 1, 1)))) +  # Set alpha for "Normal" to 0 to hide it from the legend
     labs(title = chart_title) +
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +
     theme_minimal(base_family = "sans") +
@@ -108,7 +108,6 @@ run_test <- function(data, chart_title) {
       panel.grid = element_blank(),
       panel.background = element_blank(),
       legend.position = "bottom",
-      legend.justification = "left",
       axis.title = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, color = "darkgray"),
       axis.text.y = element_text(color = "darkgray"),

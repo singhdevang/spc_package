@@ -12,7 +12,7 @@
 #' @return A ggplot object representing the SPC chart with categorical date handling and
 #'         customized aesthetics.
 #' @export
-#' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme
+#' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme element_text element_blank element_line
 #' @importFrom lubridate parse_date_time
 #' @importFrom grDevices rgb
 #' @examples

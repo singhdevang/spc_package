@@ -16,10 +16,11 @@ create_spc_data(data, date_col, value_col, chart_type)
 \item{chart_type}{Type of SPC chart to create}
 }
 \value{
-Returns a data frame with SPC data including adjusted LCL values.
+Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations, and additional control limit assessments.
 }
 \description{
-This function creates a Statistical Process Control chart data and ensures LCL values are not negative.
+This function creates a Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
+It includes multiple statistical calculations such as shift detection, trend analysis, and sigma levels with control limits.
 }
 \examples{
 data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
