@@ -57,13 +57,13 @@ interpret <- function(data) {
       results <- rbind(results, data.frame(SpecialCauseVariation = "15+", Duration = paste(start_date, end_date, sep = " - ")))
     }
   }
-
   # Detect Sigma Signals
   sigma_indices <- which(data$sigma.signal == TRUE)
   if (length(sigma_indices) > 0) {
-    start_date <- data$x[min(sigma_indices)]
-    end_date <- data$x[max(sigma_indices)]
-    results <- rbind(results, data.frame(SpecialCauseVariation = "Sigma Signal", Duration = paste(start_date, end_date, sep = " - ")))
+    for (i in sigma_indices) {
+      date_point <- data$x[i]
+      results <- rbind(results, data.frame(SpecialCauseVariation = "Sigma Signal", Duration = as.character(date_point)))
+    }
   }
   # Automatically view the results table in RStudio or similar
   if (interactive()) {
