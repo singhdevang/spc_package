@@ -1,5 +1,5 @@
-Package: ic_spc
-Title: Improvement Cymru SPC Package
+Package: icspc
+Title: Improvement Cymru SPC Maker
 Version: 0.0.0.9000
 Author: Improvement Cymru Analytics Team <analytics-improvementcymru@wales.nhs.uk>
 Maintainer: Improvement Cymru Analytics Team <analytics-improvementcymru@wales.nhs.uk>
