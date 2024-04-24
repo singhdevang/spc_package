@@ -23,7 +23,8 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
                                                  "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
-                                                 "ydm_HMS", "ydm_HM", "ydm_H", "ydm"))
+                                                 "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
+                                                 "ym"))
     if (!inherits(data$x, "Date")) {
       data$x <- as.Date(data$x)
     }
