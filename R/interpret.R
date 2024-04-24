@@ -50,17 +50,42 @@ interpret <- function(data) {
     }
   }
 
-  # Detect Trends
-  rle_trend <- compute_rle_skip_na(data$trend)
-  for (i in seq_along(rle_trend$values)) {
-    if (rle_trend$values[i] == TRUE && rle_trend$lengths[i] >= 6) {  # Custom condition for identifying significant trends
-      start_index <- sum(rle_trend$lengths[1:(i-1)]) + 1
-      end_index <- sum(rle_trend$lengths[1:i])
-      start_date <- data$x[rle_trend$actual_indices[start_index]]
-      end_date <- data$x[rle_trend$actual_indices[end_index]]
-      results <- rbind(results, data.frame(SpecialCauseVariation = "Trend", Duration = paste(start_date, end_date, sep = " - ")))
-    }
+  # Function to compute RLE while skipping NAs for trend detection
+  compute_rle_skip_na_trend <- function(differences) {
+    na_positions <- is.na(differences)
+    clean_differences <- differences[!na_positions]  # Remove NAs
+    trends <- ifelse(clean_differences < 0, TRUE, ifelse(clean_differences > 0, FALSE, NA))
+    rle_trends <- rle(trends)  # Compute RLE on cleaned trends data
+    return(list(lengths = rle_trends$lengths, values = rle_trends$values, na_positions = na_positions))
   }
+
+  # Compute differences and apply RLE skipping NA for trend analysis
+  differences <- c(diff(data$y), NA)  # Calculate differences and append NA for the last value
+  rle_trend <- compute_rle_skip_na_trend(differences)
+
+  # Identify long trend runs (example: 6 or more consecutive)
+  long_trend_runs <- which(rle_trend$lengths >= 5)  # Using 6 as per your requirement
+  for (i in long_trend_runs) {
+    indices <- sum(rle_trend$lengths[1:(i-1)]) + 1 : rle_trend$lengths[i]
+
+    # Extend the trend marking to one additional point if possible
+    if (length(differences) > max(indices)) {
+      indices <- c(indices, max(indices) + 1)
+    }
+
+    # Convert indices back to include NAs
+    actual_indices <- which(!rle_trend$na_positions)
+    real_indices <- actual_indices[indices]
+
+    # Find start and end dates including the extended point
+    start_date <- data$x[real_indices[1]]
+    end_date <- data$x[real_indices[length(real_indices)]]
+
+    # Record the trend in results with extended end date
+    results <- rbind(results, data.frame(SpecialCauseVariation = "Trend", Duration = paste(start_date, end_date, sep = " - ")))
+  }
+
+
 
   # Detect Long Runs of 15+
   rle_fifteen <- rle(data$fifteen_more)
