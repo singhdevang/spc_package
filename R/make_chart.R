@@ -9,6 +9,9 @@
 #'        'y' for the measurement values, 'cl' for the centerline, 'lcl' for the lower control limit,
 #'        and 'ucl' for the upper control limit.
 #' @param chart_title A character string representing the title of the chart.
+#' @param chart_title_size Numeric value defaulted at 14 but can be changed according to need
+#' @param caption Character string that can be used to enter source of the data on bottom right
+#' @param caption_size Numeric value that is defaulted at 8 but can be used to change size of caption
 #' @return A ggplot object representing the SPC chart with categorical date handling and
 #'         customized aesthetics.
 #' @export
@@ -23,12 +26,12 @@
 #'   lcl = 85,
 #'   ucl = 115
 #' )
-#' chart <- make_chart(data, "Monthly SPC Chart")
+#' chart <- make_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10)
 #' print(chart)
-make_chart <- function(data, chart_title) {
+make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8) {
   # Ensure that 'x' is a Date object if not already
   if (!inherits(data$x, "Date")) {
-    data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
+    data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H",
                                                  "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
                                                  "ydm_HMS", "ydm_HM", "ydm_H", "ydm"))
@@ -57,11 +60,10 @@ make_chart <- function(data, chart_title) {
     geom_line(aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
     geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +
     geom_point(aes(y = y), color = colors$y, fill = "white", shape = 21, size = 3) +
-    labs(title = chart_title) +
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +  # Explicitly set breaks and labels
     theme_minimal(base_family = "sans") +
     theme(
-      plot.title = element_text(color = colors$title, size = 14, hjust = 0.5),
+      plot.title = element_text(color = colors$title, size = chart_title_size, hjust = 0.5),
       plot.background = element_blank(),
       panel.grid = element_blank(),
       panel.background = element_blank(),
@@ -70,8 +72,19 @@ make_chart <- function(data, chart_title) {
       axis.text.y = element_text(color = "darkgray"),
       axis.ticks = element_line(color = "darkgray"),
       axis.line = element_line(color = "darkgray"),
-      plot.caption = element_text(size = 10, color = "gray", hjust = 1)
+      plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1,family = "Arial"),
+      plot.caption.position = "plot"
     )
+
+  # Conditionally add chart title if provided
+  if (chart_title != "") {
+    p <- p + labs(title = chart_title)
+  }
+
+  # Conditionally add caption if provided
+  if (caption != "") {
+    p <- p + labs(caption = caption)
+  }
 
   return(p)
 }
