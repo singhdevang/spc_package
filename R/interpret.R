@@ -46,7 +46,8 @@ interpret <- function(data) {
       end_index <- sum(rle_shift$lengths[1:i])
       start_date <- data$x[rle_shift$actual_indices[start_index]]
       end_date <- data$x[rle_shift$actual_indices[end_index]]
-      results <- rbind(results, data.frame(SpecialCauseVariation = "Shift", Duration = paste(start_date, end_date, sep = " - ")))
+      results <- rbind(results, data.frame(SpecialCauseVariation = "Shift",
+                                           Duration = paste(start_date, end_date, sep = " - ")))
     }
   }
 
@@ -106,11 +107,17 @@ interpret <- function(data) {
       results <- rbind(results, data.frame(SpecialCauseVariation = "Sigma Signal", Duration = as.character(date_point)))
     }
   }
-  # Automatically view the results table in RStudio or similar
-  if (interactive()) {
-    View(results)
+
+  if (nrow(results) == 0) {
+    message("No special cause variation detected; process is stable")
+    invisible(NULL)  # Suppress any output other than the message
   } else {
-    print(results)
+    # Print or view results if variations are detected
+    if (interactive()) {
+      View(results)
+    } else {
+      print(results)
+    }
+    return(results)
   }
-  return(results)
 }
