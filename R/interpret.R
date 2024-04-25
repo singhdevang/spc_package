@@ -41,16 +41,15 @@ interpret <- function(data) {
   # Detect Shifts
   rle_shift <- compute_rle_skip_na(data$shift)
   for (i in seq_along(rle_shift$values)) {
-    if (rle_shift$values[i] == TRUE && rle_shift$lengths[i] >= 8) {  # Custom condition for identifying significant shifts
-      start_index <- sum(rle_shift$lengths[1:(i-1)]) + 1
-      end_index <- sum(rle_shift$lengths[1:i])
-      start_date <- data$x[rle_shift$actual_indices[start_index]]
-      end_date <- data$x[rle_shift$actual_indices[end_index]]
+    if (rle_shift$lengths[i] >= 8) {  # Check if the run length is 8 or more
+      start_index = sum(rle_shift$lengths[1:(i-1)]) + 1
+      end_index = sum(rle_shift$lengths[1:i])
+      start_date = data$x[rle_shift$actual_indices[start_index]]
+      end_date = data$x[rle_shift$actual_indices[end_index]]
       results <- rbind(results, data.frame(SpecialCauseVariation = "Shift",
                                            Duration = paste(start_date, end_date, sep = " - ")))
     }
   }
-
   # Function to compute RLE while skipping NAs for trend detection
   compute_rle_skip_na_trend <- function(differences) {
     na_positions <- is.na(differences)
@@ -101,11 +100,9 @@ interpret <- function(data) {
   }
   # Detect Sigma Signals
   sigma_indices <- which(data$sigma.signal == TRUE)
-  if (length(sigma_indices) > 0) {
-    for (i in sigma_indices) {
-      date_point <- data$x[i]
-      results <- rbind(results, data.frame(SpecialCauseVariation = "Sigma Signal", Duration = as.character(date_point)))
-    }
+  for (i in sigma_indices) {
+    date_point <- data$x[i]
+    results <- rbind(results, data.frame(SpecialCauseVariation = "Sigma Signal", Duration = as.character(date_point)))
   }
 
   if (nrow(results) == 0) {
