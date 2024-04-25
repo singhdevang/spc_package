@@ -59,6 +59,18 @@ interpret <- function(data) {
     return(list(lengths = rle_trends$lengths, values = rle_trends$values, na_positions = na_positions))
   }
 
+  # Apply the 'Two Out of Three' rule for detection
+  if (length(data$two_more) >= 3) { # Ensure there are at least three data points to check
+    for (i in 3:length(data$two_more)) {
+      if (sum(data$two_more[(i-2):i]) >= 2) {
+        start_date = data$x[i-2]
+        end_date = data$x[i]
+        results <- rbind(results, data.frame(SpecialCauseVariation = "Two Out of Three",
+                                             Duration = paste(start_date, end_date, sep = " - ")))
+      }
+    }
+  }
+
   # Compute differences and apply RLE skipping NA for trend analysis
   differences <- c(diff(data$y), NA)  # Calculate differences and append NA for the last value
   rle_trend <- compute_rle_skip_na_trend(differences)

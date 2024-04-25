@@ -43,7 +43,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     fifteen_more = rgb(255,225,138, maxColorValue = 255),
     trend_stability = rgb(190,190,190, maxColorValue = 255),
     normal = rgb(255,255,255, maxColorValue = 255),
-    two_of_three = rgb(190,114,157,maxColorValue = 255)
+    two_of_three = rgb(0,0,0,maxColorValue = 255)
   )
 
   # Assign condition names for the legend and corresponding colors
@@ -124,12 +124,17 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
   }
 
 
-  # Two out of three in two_more
-  #for (i in 3:nrow(data)) {
-  #   if (sum(data$two_more[(i-2):i]) >= 2) {
-  #    fill_colors[(i-2):i] <- colors$two_of_three
-  #  }
-  # }
+  # Apply two out of three rule
+  # This must consider if other conditions have already colored the point
+  for (i in 3:nrow(data)) {
+    if (sum(data$two_more[(i-2):i]) >= 2) {
+      # Check if other variations haven't been applied
+     if (all(fill_conditions[(i-2):i] == "Normal")) {
+        fill_conditions[(i-2):i] <- "Two Out of Three"
+        fill_colors[(i-2):i] <- colors$two_of_three
+      }
+   }
+  }
 
   # Create the plot
   p <- ggplot(data, aes(x = x, y = y)) +
@@ -143,7 +148,8 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
       "Sigma Signal" = colors$special,
       "Shift" = colors$shift_pattern,
       "15+" = colors$fifteen_more,
-      "Trend" = colors$trend_stability
+      "Trend" = colors$trend_stability,
+      "Two Out of Three" = colors$two_of_three
     ), name = NULL) +
     #guides(fill = guide_legend(override.aes = list(alpha = c(0, 1, 1, 1, 1)))) +  # Set alpha for "Normal" to 0 to hide it from the legend
     labs(title = chart_title) +
