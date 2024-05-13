@@ -81,14 +81,28 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
 
   }
 
-  # Long runs in fifteen_more
-  rle_fifteen <- rle(data$fifteen_more)
-  long_fifteen_runs <- which(rle_fifteen$values == TRUE & rle_fifteen$lengths >= 15)
-  for (i in long_fifteen_runs) {
-    indices <- sum(rle_fifteen$lengths[1:(i-1)]) + 1: rle_fifteen$lengths[i]
-    fill_conditions[indices] <- "15+"
-    fill_conditions[indices] <- colors$fifteen_more
+  # Process fifteen_more condition
+  if ("fifteen_more" %in% names(data) && any(data$fifteen_more)) {
+    rle_fifteen <- rle(data$fifteen_more)
+    pos <- 1
+    for (i in seq_along(rle_fifteen$lengths)) {
+      if (rle_fifteen$values[i]) {
+        len <- rle_fifteen$lengths[i]
+        if (len >= 15) {  # Apply only if the run length is 15 or more
+          indices <- pos:(pos + len - 1)
+          fill_conditions[indices] <- "15+"
+          fill_colors[indices] <- colors$fifteen_more
+        }
+      }
+      pos <- pos + rle_fifteen$lengths[i]
+    }
   }
+
+  # Debugging before plotting
+  print(length(fill_conditions) == nrow(data))  # Must be TRUE
+  print(length(fill_colors) == nrow(data))      # Must be TRUE
+  print(table(fill_conditions))                 # Check distribution of conditions
+
 
   # Function to compute RLE while skipping NAs
   compute_rle_skip_na_trend <- function(differences) {
@@ -135,6 +149,8 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
       }
    }
   }
+
+
 
   # Create the plot
   p <- ggplot(data, aes(x = x, y = y)) +

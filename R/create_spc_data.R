@@ -21,8 +21,8 @@ create_spc_data <- function(data, date_col, value_col, chart_type) {
                                       orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
                                                  "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
-                                               "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
-                                               "ym"))
+                                                 "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
+                                                 "ym"))
 
   # Create the SPC chart using qic function from qicharts2
   chart <- qic(data[[date_col]], data[[value_col]], data = data, chart = chart_type)

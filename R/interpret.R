@@ -97,19 +97,45 @@ interpret <- function(data) {
     results <- rbind(results, data.frame(SpecialCauseVariation = "Trend", Duration = paste(start_date, end_date, sep = " - ")))
   }
 
-
-
   # Detect Long Runs of 15+
   rle_fifteen <- rle(data$fifteen_more)
+  print(paste("RLE Values:", toString(rle_fifteen$values)))
+  print(paste("RLE Lengths:", toString(rle_fifteen$lengths)))
+
   for (i in seq_along(rle_fifteen$values)) {
     if (rle_fifteen$values[i] == TRUE && rle_fifteen$lengths[i] >= 15) {
-      start_index <- sum(rle_fifteen$lengths[1:(i-1)]) + 1
+      # Calculating the correct start_index based on previous runs
+      if (i > 1) {
+        start_index <- sum(rle_fifteen$lengths[1:(i-1)]) + 1
+      } else {
+        start_index <- 1  # Start from the first index if it's the first run
+      }
+
+      # Calculating end_index based on the current run's length
       end_index <- sum(rle_fifteen$lengths[1:i])
+
+      print(paste("Dynamic Start Index:", start_index))
+      print(paste("Dynamic End Index:", end_index))
+
       start_date <- data$x[start_index]
       end_date <- data$x[end_index]
+
+      print(paste("Start Date:", start_date))
+      print(paste("End Date:", end_date))
+
       results <- rbind(results, data.frame(SpecialCauseVariation = "15+", Duration = paste(start_date, end_date, sep = " - ")))
     }
   }
+  if (nrow(results) == 0) {
+    message("No special cause variation detected; process is stable")
+  } else {
+    print(results)
+  }
+
+
+
+
+
   # Detect Sigma Signals
   sigma_indices <- which(data$sigma.signal == TRUE)
   for (i in sigma_indices) {
