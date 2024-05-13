@@ -2,9 +2,9 @@
 % Please edit documentation in R/create_spc_data.R
 \name{create_spc_data}
 \alias{create_spc_data}
-\title{Create SPC Data}
+\title{Create SPC Data with Dynamic Phases}
 \usage{
-create_spc_data(data, date_col, value_col, chart_type)
+create_spc_data(data, date_col, value_col, chart_type, phase = numeric(0))
 }
 \arguments{
 \item{data}{Data frame containing the data}
@@ -14,13 +14,19 @@ create_spc_data(data, date_col, value_col, chart_type)
 \item{value_col}{Name of the value column}
 
 \item{chart_type}{Type of SPC chart to create}
+
+\item{phase}{A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
+Each specified row starts a new phase, incrementing by 1 from the previous phase.
+If left blank, all phases default to 1.}
 }
 \value{
-Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations, and additional control limit assessments.
+Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations,
+additional control limit assessments, and dynamic phase adjustments.
 }
 \description{
-This function creates a Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
-It includes multiple statistical calculations such as shift detection, trend analysis, and sigma levels with control limits.
+This function creates Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
+It includes multiple statistical calculations such as shift detection, trend analysis, sigma levels with control limits,
+and dynamic phase adjustments based on input.
 }
 \examples{
 data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),

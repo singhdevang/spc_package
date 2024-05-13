@@ -17,16 +17,15 @@
 #'                    units = c(100, 90, 110, 100, 95, 105, 100, 95, 100, 90, 95, 105))
 #' create_spc_data_pu(data, 'date', 'defects', 'units', 'u')
 
-# Helper function to standardize date formats
-standardize_dates <- function(date_vector) {
-  guessed_format <- guess_formats(date_vector, orders = c("ymd", "mdy", "dmy"))
-  parsed_dates <- parse_date_time(date_vector, orders = guessed_format)
-  return(as.Date(parsed_dates))
-}
-# Main function for creating SPC data
 create_spc_data_pu <- function(data, date_col, num_col, den_col, chart_type) {
-  # Standardize the date format using the helper function
-  data[[date_col]] <- standardize_dates(data[[date_col]])
+  # Parse the date column using ymd function from lubridate for yyyy-mm-dd format
+  #data[[date_col]] <- ymd(data[[date_col]])
+  data[[date_col]] <- parse_date_time(data[[date_col]],
+                                      orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
+                                                 "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
+                                                 "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
+                                                 "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
+                                                 "ym"))
   # Create the SPC chart using qic function from qicharts2
   chart <- qic(data[[date_col]], data[[num_col]], data[[den_col]], data = data, chart = chart_type)
 
