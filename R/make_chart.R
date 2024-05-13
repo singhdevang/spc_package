@@ -1,19 +1,20 @@
-#' Create a Customized SPC Chart
+#' Create a Customized SPC Chart with Phase Handling
 #'
 #' This function generates a statistical process control (SPC) chart from provided SPC data.
 #' It ensures that date columns are treated as categorical variables, allowing each unique
 #' date to be plotted without summarization. The function colors various components of the
-#' chart and uses discrete scaling for the x-axis to display all unique dates.
+#' chart and uses discrete scaling for the x-axis to display all unique dates. If phase changes
+#' exist, it discontinues line connections between different phases.
 #'
 #' @param data A data frame containing the SPC data including at least the columns 'x' for dates,
 #'        'y' for the measurement values, 'cl' for the centerline, 'lcl' for the lower control limit,
-#'        and 'ucl' for the upper control limit.
+#'        'ucl' for the upper control limit, and optionally 'phase' for indicating phase changes.
 #' @param chart_title A character string representing the title of the chart.
-#' @param chart_title_size Numeric value defaulted at 14 but can be changed according to need
-#' @param caption Character string that can be used to enter source of the data on bottom right
-#' @param caption_size Numeric value that is defaulted at 8 but can be used to change size of caption
+#' @param chart_title_size Numeric value defaulted at 14 but can be changed according to need.
+#' @param caption Character string that can be used to enter source of the data on bottom right.
+#' @param caption_size Numeric value that is defaulted at 8 but can be used to change size of caption.
 #' @return A ggplot object representing the SPC chart with categorical date handling and
-#'         customized aesthetics.
+#'         customized aesthetics, including phase handling.
 #' @export
 #' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme element_text element_blank element_line
 #' @importFrom lubridate parse_date_time
@@ -24,7 +25,8 @@
 #'   y = rnorm(12, 100, 10),
 #'   cl = 100,
 #'   lcl = 85,
-#'   ucl = 115
+#'   ucl = 115,
+#'   phase = rep(1:2, each = 6)
 #' )
 #' chart <- make_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10)
 #' print(chart)
@@ -54,13 +56,20 @@ make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = 
     annotation = rgb(40, 40, 40, maxColorValue = 255)
   )
 
+  # Prepare data by phase if phase column exists
+  data_list <- split(data, data$phase)
+
   # Create the plot with ggplot2
   p <- ggplot(data, aes(x = x)) +
-    geom_line(aes(y = cl, group = 1), color = colors$cl, size = 1.25) +
-    geom_line(aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
-    geom_line(aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
-    geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +
-    geom_point(aes(y = y), color = colors$y, fill = "white", shape = 21, size = 3) +
+    lapply(data_list, function(df) {
+      list(
+        geom_line(data = df, aes(y = cl, group = 1), color = colors$cl, size = 1.25),
+        geom_line(data = df, aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5),
+        geom_line(data = df, aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5)
+      )
+    }) +
+    geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +  # Now plotting y last so it's on top
+    geom_point(aes(y = y), color = colors$y, fill = "white", shape = 21, size = 3) +  # Plotting points last as well
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +  # Explicitly set breaks and labels
     theme_minimal(base_family = "sans") +
     theme(
@@ -76,7 +85,6 @@ make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = 
       plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1,family = "Arial"),
       plot.caption.position = "plot"
     )
-
   # Conditionally add chart title if provided
   if (chart_title != "") {
     p <- p + labs(title = chart_title)
