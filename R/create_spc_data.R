@@ -81,8 +81,6 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
 
     return(modified_data)
   })
-  # Reassemble the data into a single frame
-  final_data <- do.call(rbind, results)
 
   # Reassemble the data into a single frame
   final_data <- do.call(rbind, results)
