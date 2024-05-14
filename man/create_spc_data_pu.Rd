@@ -2,9 +2,16 @@
 % Please edit documentation in R/create_spc_data_pu.R
 \name{create_spc_data_pu}
 \alias{create_spc_data_pu}
-\title{Create SPC Data for P-Charts and U-Charts}
+\title{Create SPC Data for P-Charts and U-Charts with Dynamic Phases}
 \usage{
-create_spc_data_pu(data, date_col, num_col, den_col, chart_type)
+create_spc_data_pu(
+  data,
+  date_col,
+  num_col,
+  den_col,
+  chart_type,
+  phase = numeric(0)
+)
 }
 \arguments{
 \item{data}{Data frame containing the data.}
@@ -16,16 +23,23 @@ create_spc_data_pu(data, date_col, num_col, den_col, chart_type)
 \item{den_col}{Name of the denominator column (sample size or units).}
 
 \item{chart_type}{Type of SPC chart to create ('p' for p-chart, 'u' for u-chart).}
+
+\item{phase}{A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
+Each specified row starts a new phase, incrementing by 1 from the previous phase.
+If left blank, all phases default to 1.}
 }
 \value{
-Returns a data frame with SPC data including adjusted LCL values, shifts, trends, sigma calculations, and additional control limit assessments.
+Returns a data frame with SPC data including adjusted LCL values, shifts, trends, sigma calculations,
+additional control limit assessments, and dynamic phase adjustments.
 }
 \description{
-This function creates Statistical Process Control (SPC) chart data specifically for p-charts and u-charts. It ensures non-negative Lower Control Limits (LCL) and integrates additional statistical calculations such as trend analysis, shift detection, and sigma levels with control limits.
+This function creates Statistical Process Control (SPC) chart data specifically for p-charts and u-charts.
+It ensures non-negative Lower Control Limits (LCL) and integrates additional statistical calculations such as trend analysis,
+shift detection, sigma levels with control limits, and dynamic phase adjustments based on input.
 }
 \examples{
 data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 12),
                    defects = c(5, 6, 2, 8, 5, 9, 3, 4, 7, 1, 3, 2),
                    units = c(100, 90, 110, 100, 95, 105, 100, 95, 100, 90, 95, 105))
-create_spc_data_pu(data, 'date', 'defects', 'units', 'u')
+create_spc_data_pu(data, 'date', 'defects', 'units', 'u', phase = c(5, 10))
 }

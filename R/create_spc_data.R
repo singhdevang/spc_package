@@ -58,6 +58,8 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
     modified_data <- spc_chart$data
     modified_data$lcl <- pmax(modified_data$lcl, 0)
 
+
+
     # Calculate shift, trend, sigma, and control limits
     modified_data$shift <- ifelse(modified_data$y == modified_data$cl, NA, modified_data$y < modified_data$cl)
     differences <- c(diff(modified_data$y), NA)  # Append NA for the last difference
@@ -68,7 +70,12 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
     modified_data$cl_plus_2sigma <- modified_data$cl + 2 * modified_data$sigma
     modified_data$cl_minus_1sigma <- modified_data$cl - modified_data$sigma
     modified_data$cl_minus_2sigma <- modified_data$cl - 2 * modified_data$sigma
-
+    # Define fifteen_more based on sigma limits
+    modified_data$fifteen_more <- ifelse(
+      modified_data$shift,
+      modified_data$y > modified_data$cl_minus_1sigma,  # Condition when shift is TRUE
+      modified_data$y < modified_data$cl_plus_1sigma    # Condition when shift is FALSE
+    )
     # Ensure the phase column is carried over correctly
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
