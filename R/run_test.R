@@ -9,20 +9,30 @@
 #'        'ucl' for the upper control limit, and various signal columns.
 #' @param chart_title A character string representing the title of the chart.
 #' @param chart_title_size Numeric value defaulted at 14 but can be changed according to need
-#' @param caption Character string that can be used to enter source of the data on bottom right
-#' @param caption_size Numeric value that is defaulted at 8 but can be used to change size of caption
+#' @param caption Character string that can be used to enter the source of the data on the bottom right
+#' @param caption_size Numeric value that is defaulted at 8 but can be used to change the size of the caption
+#' @param annotations A data frame containing the annotations with columns 'row_number', 'label',
+#'        'text_size', 'position_x', 'position_y'. The 'position_x' and 'position_y' columns
+#'        specify the offset for the annotation text relative to the point.
 #' @return A ggplot object representing the SPC chart with customized aesthetics.
 #' @export
-#' @importFrom ggplot2 ggplot geom_line geom_point aes labs scale_x_discrete theme_minimal theme element_text element_blank scale_fill_manual
+#' @importFrom ggplot2 ggplot geom_line geom_point geom_text geom_segment aes labs scale_x_discrete theme_minimal theme element_text element_blank scale_fill_manual
 #' @importFrom lubridate parse_date_time
 #' @importFrom grDevices rgb
 #' @examples
 #' data <- create_spc_data(your_data_frame, 'date', 'value', 'xbar')
-#' run_test(data, "Comprehensive Monthly SPC Chart")
-run_test <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8) {
+#' annotations <- data.frame(
+#'   row_number = c(10, 20),
+#'   label = c("Annotation 1", "Annotation 2"),
+#'   text_size = c(4, 4),
+#'   position_x = c(1, -1),
+#'   position_y = c(10, -10)
+#' )
+#' run_test(data, "Comprehensive Monthly SPC Chart", annotations = annotations)
+run_test <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
   # Ensure 'x' is a Date object
   if (!inherits(data$x, "Date")) {
-    data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
+    data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H",
                                                  "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
                                                  "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
@@ -40,6 +50,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     lcl_ucl = rgb(190, 190, 190, maxColorValue = 255),
     title = rgb(27, 87, 104, maxColorValue = 255),
     annotation = rgb(40, 40, 40, maxColorValue = 255),
+    annotation_line = rgb(169, 169, 169, maxColorValue = 255),
     special = rgb(157, 15, 78, maxColorValue = 255),
     shift_pattern = rgb(153, 215, 216, maxColorValue = 255),
     fifteen_more = rgb(255, 225, 138, maxColorValue = 255),
@@ -161,6 +172,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
       plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1, family = "Arial"),
       plot.caption.position = "plot"
     )
+
   # Conditionally add chart title if provided
   if (chart_title != "") {
     p <- p + labs(title = chart_title)
@@ -170,5 +182,32 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
   if (caption != "") {
     p <- p + labs(caption = caption)
   }
+
+  # Conditionally add annotations if provided
+  if (!is.null(annotations) && nrow(annotations) > 0) {
+    for (i in 1:nrow(annotations)) {
+      annotation <- annotations[i, ]
+      row_number <- annotation$row_number
+      label <- annotation$label
+      text_size <- annotation$text_size
+      position_x <- annotation$position_x
+      position_y <- annotation$position_y
+
+      # Get x and y values for the annotation based on row number
+      x_value <- as.character(data$x[row_number])
+      y_value <- data$y[row_number]
+
+      # Adjust x position as a factor shift
+      x_position <- which(levels(factor(data$x)) == x_value) + position_x
+
+      # Add segment and text for the annotation
+      p <- p +
+        geom_segment(aes(x = x_value, y = y_value + 0.1, xend = levels(factor(data$x))[x_position], yend = y_value + position_y),
+                     color = colors$annotation_line, size = 0.5) +
+        geom_text(aes(x = levels(factor(data$x))[x_position], y = y_value + position_y, label = label),
+                  color = colors$annotation, size = text_size, family = "Arial", hjust = 0.5, vjust = -0.3)  # Adjusted vjust to move label up
+    }
+  }
+
   return(p)
 }

@@ -9,7 +9,8 @@ run_test(
   chart_title = "",
   chart_title_size = 14,
   caption = "",
-  caption_size = 8
+  caption_size = 8,
+  annotations = NULL
 )
 }
 \arguments{
@@ -21,9 +22,13 @@ run_test(
 
 \item{chart_title_size}{Numeric value defaulted at 14 but can be changed according to need}
 
-\item{caption}{Character string that can be used to enter source of the data on bottom right}
+\item{caption}{Character string that can be used to enter the source of the data on the bottom right}
 
-\item{caption_size}{Numeric value that is defaulted at 8 but can be used to change size of caption}
+\item{caption_size}{Numeric value that is defaulted at 8 but can be used to change the size of the caption}
+
+\item{annotations}{A data frame containing the annotations with columns 'row_number', 'label',
+'text_size', 'position_x', 'position_y'. The 'position_x' and 'position_y' columns
+specify the offset for the annotation text relative to the point.}
 }
 \value{
 A ggplot object representing the SPC chart with customized aesthetics.
@@ -35,5 +40,12 @@ If phases are present, it treats each phase as an independent subgroup for apply
 }
 \examples{
 data <- create_spc_data(your_data_frame, 'date', 'value', 'xbar')
-run_test(data, "Comprehensive Monthly SPC Chart")
+annotations <- data.frame(
+  row_number = c(10, 20),
+  label = c("Annotation 1", "Annotation 2"),
+  text_size = c(4, 4),
+  position_x = c(1, -1),
+  position_y = c(10, -10)
+)
+run_test(data, "Comprehensive Monthly SPC Chart", annotations = annotations)
 }

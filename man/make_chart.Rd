@@ -2,14 +2,15 @@
 % Please edit documentation in R/make_chart.R
 \name{make_chart}
 \alias{make_chart}
-\title{Create a Customized SPC Chart with Phase Handling}
+\title{Create a Customized SPC Chart with Phase Handling and Annotations}
 \usage{
 make_chart(
   data,
   chart_title = "",
   chart_title_size = 14,
   caption = "",
-  caption_size = 8
+  caption_size = 8,
+  annotations = NULL
 )
 }
 \arguments{
@@ -21,9 +22,13 @@ make_chart(
 
 \item{chart_title_size}{Numeric value defaulted at 14 but can be changed according to need.}
 
-\item{caption}{Character string that can be used to enter source of the data on bottom right.}
+\item{caption}{Character string that can be used to enter the source of the data on the bottom right.}
 
-\item{caption_size}{Numeric value that is defaulted at 8 but can be used to change size of caption.}
+\item{caption_size}{Numeric value that is defaulted at 8 but can be used to change the size of the caption.}
+
+\item{annotations}{A data frame containing the annotations with columns 'row_number', 'label',
+'text_size', 'position_x', 'position_y'. The 'position_x' and 'position_y' columns
+specify the offset for the annotation text relative to the point.}
 }
 \value{
 A ggplot object representing the SPC chart with categorical date handling and
@@ -34,7 +39,8 @@ This function generates a statistical process control (SPC) chart from provided 
 It ensures that date columns are treated as categorical variables, allowing each unique
 date to be plotted without summarization. The function colors various components of the
 chart and uses discrete scaling for the x-axis to display all unique dates. If phase changes
-exist, it discontinues line connections between different phases.
+exist, it discontinues line connections between different phases. Additionally, it allows
+for custom annotations on the chart.
 }
 \examples{
 data <- data.frame(
@@ -45,6 +51,13 @@ data <- data.frame(
   ucl = 115,
   phase = rep(1:2, each = 6)
 )
-chart <- make_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10)
+annotations <- data.frame(
+  row_number = c(3, 9),
+  label = c("Annotation 1", "Annotation 2"),
+  text_size = c(4, 4),
+  position_x = c(0.2, -0.2),
+  position_y = c(10, -10)
+)
+chart <- make_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10, annotations)
 print(chart)
 }

@@ -13,8 +13,8 @@ interpret(data)
 \value{
 Returns a data frame with columns: \code{SpecialCauseVariation}, which describes the type of
 variation detected, \code{Duration}, which provides the duration or the specific point of occurrence
-for sigma signals, \code{Phase}, which indicates the phase in which the variation was detected, and
-\code{RowNumber}, which indicates the row number(s) of the special cause variation.
+for sigma signals, \code{Phase}, which indicates the phase in which the variation was detected, \code{RowNumber}, which indicates the row number(s) of the special cause variation,
+and \code{SubgroupNumber}, which indicates the subgroup number(s) of the special cause variation.
 For interactive sessions, the results are also displayed using \code{View} or \code{print}.
 }
 \description{
@@ -33,7 +33,8 @@ spc_data <- data.frame(
   sigma.signal = c(rep(FALSE, 20), rep(TRUE, 4)),
   two_more = c(rep(FALSE, 22), rep(TRUE, 2)),
   phase = c(rep(1, 12), rep(2, 12)),
-  row_number = 1:24
+  row_number = 1:24,
+  subgroup_number = rep(1:4, each = 6)
 )
 interpreted_data <- interpret(spc_data)
 print(interpreted_data)
