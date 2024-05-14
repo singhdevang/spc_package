@@ -10,8 +10,8 @@
 #'
 #' @return Returns a data frame with columns: `SpecialCauseVariation`, which describes the type of
 #'   variation detected, `Duration`, which provides the duration or the specific point of occurrence
-#'   for sigma signals, `Phase`, which indicates the phase in which the variation was detected, and
-#'   `RowNumber`, which indicates the row number(s) of the special cause variation.
+#'   for sigma signals, `Phase`, which indicates the phase in which the variation was detected, `RowNumber`, which indicates the row number(s) of the special cause variation,
+#'   and `SubgroupNumber`, which indicates the subgroup number(s) of the special cause variation.
 #'   For interactive sessions, the results are also displayed using `View` or `print`.
 #' @examples
 #' # Assuming 'spc_data' is a dataframe obtained from `create_spc_data` function
@@ -23,7 +23,8 @@
 #'   sigma.signal = c(rep(FALSE, 20), rep(TRUE, 4)),
 #'   two_more = c(rep(FALSE, 22), rep(TRUE, 2)),
 #'   phase = c(rep(1, 12), rep(2, 12)),
-#'   row_number = 1:24
+#'   row_number = 1:24,
+#'   subgroup_number = rep(1:4, each = 6)
 #' )
 #' interpreted_data <- interpret(spc_data)
 #' print(interpreted_data)
@@ -40,14 +41,14 @@ interpret <- function(data) {
   }
 
   # Initialize an empty data frame to store results
-  results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), RowNumber = integer(), stringsAsFactors = FALSE)
+  results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), RowNumber = integer(), SubgroupNumber = integer(), stringsAsFactors = FALSE)
 
   # Split the data by phase
   data_list <- split(data, data$phase)
 
   # Function to interpret each phase separately
   interpret_phase <- function(subdata) {
-    phase_results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), RowNumber = integer(), stringsAsFactors = FALSE)
+    phase_results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), RowNumber = integer(), SubgroupNumber = integer(), stringsAsFactors = FALSE)
     phase <- unique(subdata$phase)
 
     # Shift detection logic
@@ -61,9 +62,10 @@ interpret <- function(data) {
         start_date <- subdata$x[start_index]
         end_date <- subdata$x[end_index]
         row_number <- subdata$row_number[start_index]
+        subgroup_number <- subdata$subgroup_number[start_index]
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Shift",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, RowNumber = row_number))
+                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
       }
       pos <- pos + rle_shift$lengths[i]
     }
@@ -85,10 +87,11 @@ interpret <- function(data) {
         start_date <- subdata$x[real_indices[1]]
         end_date <- subdata$x[real_indices[length(real_indices)]]
         row_number <- subdata$row_number[real_indices[1]]
+        subgroup_number <- subdata$subgroup_number[real_indices[1]]
 
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Trend",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, RowNumber = row_number))
+                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
       }
       pos <- pos + rle_trend$lengths[i]
     }
@@ -102,10 +105,11 @@ interpret <- function(data) {
         start_date <- subdata$x[start_index]
         end_date <- subdata$x[end_index]
         row_number <- subdata$row_number[start_index]
+        subgroup_number <- subdata$subgroup_number[start_index]
 
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "15+",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, RowNumber = row_number))
+                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
       }
     }
 
@@ -114,9 +118,10 @@ interpret <- function(data) {
     for (i in sigma_indices) {
       date_point <- subdata$x[i]
       row_number <- subdata$row_number[i]
+      subgroup_number <- subdata$subgroup_number[i]
       phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Sigma Signal",
                                                        Duration = as.character(date_point),
-                                                       Phase = phase, RowNumber = row_number))
+                                                       Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
     }
 
     # Apply the 'Two Out of Three' rule
@@ -126,9 +131,10 @@ interpret <- function(data) {
           start_date <- subdata$x[i-2]
           end_date <- subdata$x[i]
           row_number <- subdata$row_number[i-2]
+          subgroup_number <- subdata$subgroup_number[i-2]
           phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Two Out of Three",
                                                            Duration = paste(start_date, end_date, sep = " - "),
-                                                           Phase = phase, RowNumber = row_number))
+                                                           Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
         }
       }
     }

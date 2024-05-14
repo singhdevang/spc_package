@@ -16,16 +16,15 @@
 #' @export
 #' @importFrom qicharts2 qic
 #' @importFrom lubridate parse_date_time floor_date
-#' @importFrom dplyr mutate row_number select everything group_by summarise
+#' @importFrom dplyr mutate row_number select everything group_by summarise ungroup
+#' @importFrom rlang sym
 #' @examples
 #' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
 #'                    value = rnorm(30, 100, 15))
 #' create_spc_data(data, 'date', 'value', 'xbar', phase = c(10, 20))
 create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
   # Ensure required packages are loaded
-  requireNamespace("qicharts2", quietly = TRUE)
-  requireNamespace("lubridate", quietly = TRUE)
-  requireNamespace("dplyr", quietly = TRUE)
+
 
   # Try to parse the date column using common date formats
   data[[date_col]] <- parse_date_time(data[[date_col]],
@@ -36,7 +35,7 @@ create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = nu
                                                  "ym"))
 
   # Initialize phase column
-  chart_data <- data %>%
+  chart_data <- data |>
     mutate(original_row_number = row_number())
   if (length(phase) > 0) {
     phase_values <- rep(1, nrow(chart_data))
@@ -56,9 +55,9 @@ create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = nu
   # Phase-dependent recalculations
   results <- lapply(split_data, function(subdata) {
     # Identify the starting row for each subgroup in the original data
-    subgroup_starts <- subdata %>%
-      group_by(grp = floor_date(!!sym(date_col), "month")) %>%
-      summarise(subgroup_start = min(original_row_number)) %>%
+    subgroup_starts <- subdata |>
+      group_by(grp = floor_date(!!sym(date_col), "month")) |>
+      summarise(subgroup_start = min(original_row_number)) |>
       ungroup()
 
     # Recreate the SPC chart for each phase using qicharts2
@@ -88,7 +87,7 @@ create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = nu
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
     # Map subgroup_number to modified_data
-    modified_data <- modified_data %>%
+    modified_data <- modified_data |>
       mutate(subgroup_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
 
     return(modified_data)
@@ -98,9 +97,9 @@ create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = nu
   final_data <- do.call(rbind, results)
 
   # Add row_number as the first column
-  final_data <- final_data %>%
-    mutate(row_number = row_number()) %>%
-    select(row_number, everything())
+  final_data <- final_data |>
+    mutate(row_number = row_number()) |>
+    select(row_number, subgroup_number,everything())
 
   return(final_data)
 }
