@@ -1,3 +1,26 @@
+#' Create SPC Data with Dynamic Phases
+#'
+#' This function creates Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
+#' It includes multiple statistical calculations such as shift detection, trend analysis, sigma levels with control limits,
+#' and dynamic phase adjustments based on input.
+#'
+#' @param data Data frame containing the data
+#' @param date_col Name of the date column
+#' @param value_col Name of the value column
+#' @param chart_type Type of SPC chart to create
+#' @param phase A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
+#'              Each specified row starts a new phase, incrementing by 1 from the previous phase.
+#'              If left blank, all phases default to 1.
+#' @return Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations,
+#'         additional control limit assessments, and dynamic phase adjustments.
+#' @export
+#' @importFrom qicharts2 qic
+#' @importFrom lubridate parse_date_time
+#' @importFrom dplyr mutate row_number select everything
+#' @examples
+#' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
+#'                    value = rnorm(30, 100, 15))
+#' create_spc_data(data, 'date', 'value', 'xbar', phase = c(10, 20))
 create_spc_data <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
   # Try to parse the date column using common date formats
   data[[date_col]] <- parse_date_time(data[[date_col]],
@@ -6,6 +29,8 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
                                                  "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
                                                  "ym"))
+
+
 
   # Initialize phase column
   chart_data <- data
@@ -53,5 +78,14 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
   # Reassemble the data into a single frame
   final_data <- do.call(rbind, results)
 
+  # Reassemble the data into a single frame
+  final_data <- do.call(rbind, results)
+
+  # Add row_number as the first column
+  final_data <- final_data |>
+    mutate(row_number = row_number()) |>
+    select(row_number, everything())
+
   return(final_data)
 }
+
