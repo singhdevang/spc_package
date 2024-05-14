@@ -15,13 +15,18 @@
 #'         additional control limit assessments, and dynamic phase adjustments.
 #' @export
 #' @importFrom qicharts2 qic
-#' @importFrom lubridate parse_date_time
-#' @importFrom dplyr mutate row_number select everything
+#' @importFrom lubridate parse_date_time floor_date
+#' @importFrom dplyr mutate row_number select everything group_by summarise
 #' @examples
 #' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
 #'                    value = rnorm(30, 100, 15))
 #' create_spc_data(data, 'date', 'value', 'xbar', phase = c(10, 20))
-create_spc_data <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
+create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
+  # Ensure required packages are loaded
+  requireNamespace("qicharts2", quietly = TRUE)
+  requireNamespace("lubridate", quietly = TRUE)
+  requireNamespace("dplyr", quietly = TRUE)
+
   # Try to parse the date column using common date formats
   data[[date_col]] <- parse_date_time(data[[date_col]],
                                       orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
@@ -30,10 +35,9 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
                                                  "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
                                                  "ym"))
 
-
-
   # Initialize phase column
-  chart_data <- data
+  chart_data <- data %>%
+    mutate(original_row_number = row_number())
   if (length(phase) > 0) {
     phase_values <- rep(1, nrow(chart_data))
     current_phase <- 1
@@ -51,14 +55,18 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
 
   # Phase-dependent recalculations
   results <- lapply(split_data, function(subdata) {
+    # Identify the starting row for each subgroup in the original data
+    subgroup_starts <- subdata %>%
+      group_by(grp = floor_date(!!sym(date_col), "month")) %>%
+      summarise(subgroup_start = min(original_row_number)) %>%
+      ungroup()
+
     # Recreate the SPC chart for each phase using qicharts2
     spc_chart <- qic(subdata[[date_col]], subdata[[value_col]], data = subdata, chart = chart_type)
 
     # Take the data from the SPC chart
     modified_data <- spc_chart$data
     modified_data$lcl <- pmax(modified_data$lcl, 0)
-
-
 
     # Calculate shift, trend, sigma, and control limits
     modified_data$shift <- ifelse(modified_data$y == modified_data$cl, NA, modified_data$y < modified_data$cl)
@@ -79,17 +87,19 @@ create_spc_data <- function(data, date_col, value_col, chart_type, phase = numer
     # Ensure the phase column is carried over correctly
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
+    # Map subgroup_number to modified_data
+    modified_data <- modified_data %>%
+      mutate(subgroup_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
+
     return(modified_data)
   })
-  # Reassemble the data into a single frame
-  final_data <- do.call(rbind, results)
 
   # Reassemble the data into a single frame
   final_data <- do.call(rbind, results)
 
   # Add row_number as the first column
-  final_data <- final_data |>
-    mutate(row_number = row_number()) |>
+  final_data <- final_data %>%
+    mutate(row_number = row_number()) %>%
     select(row_number, everything())
 
   return(final_data)
