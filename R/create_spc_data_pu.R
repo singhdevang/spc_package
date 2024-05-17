@@ -23,7 +23,6 @@
 #'                    defects = c(5, 6, 2, 8, 5, 9, 3, 4, 7, 1, 3, 2),
 #'                    units = c(100, 90, 110, 100, 95, 105, 100, 95, 100, 90, 95, 105))
 #' create_spc_data_pu(data, 'date', 'defects', 'units', 'u', phase = c(5, 10))
-
 create_spc_data_pu <- function(data, date_col, num_col, den_col, chart_type, phase = numeric(0)) {
   # Parse the date column using common date formats
   data[[date_col]] <- parse_date_time(data[[date_col]],
@@ -32,7 +31,6 @@ create_spc_data_pu <- function(data, date_col, num_col, den_col, chart_type, pha
                                                  "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
                                                  "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
                                                  "ym"))
-
 
   # Initialize phase column
   chart_data <- data
@@ -53,6 +51,12 @@ create_spc_data_pu <- function(data, date_col, num_col, den_col, chart_type, pha
 
   # Phase-dependent recalculations
   results <- lapply(split_data, function(subdata) {
+    # Identify the starting row for each subgroup in the original data
+    subgroup_starts <- subdata |>
+      group_by(grp = floor_date(!!sym(date_col), "month")) |>
+      summarise(subgroup_start = min(row_number())) |>
+      ungroup()
+
     # Create the SPC chart for each phase using qicharts2
     spc_chart <- qic(subdata[[date_col]], subdata[[num_col]], subdata[[den_col]], data = subdata, chart = chart_type)
 
@@ -91,6 +95,10 @@ create_spc_data_pu <- function(data, date_col, num_col, den_col, chart_type, pha
     # Ensure the phase column is carried over correctly
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
+    # Map subgroup_number to modified_data
+    modified_data <- modified_data |>
+      mutate(subgroup_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
+
     return(modified_data)
   })
 
@@ -100,7 +108,7 @@ create_spc_data_pu <- function(data, date_col, num_col, den_col, chart_type, pha
   # Add row_number as the first column
   final_data <- final_data |>
     mutate(row_number = row_number()) |>
-    select(row_number, everything())
+    select(row_number, subgroup_number, everything())
 
   return(final_data)
 }

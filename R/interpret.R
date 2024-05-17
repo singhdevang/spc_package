@@ -43,6 +43,11 @@ interpret <- function(data) {
   # Initialize an empty data frame to store results
   results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), RowNumber = integer(), SubgroupNumber = integer(), stringsAsFactors = FALSE)
 
+  # Ensure 'subgroup_number' is present and handle missing values
+  if (!"subgroup_number" %in% colnames(data)) {
+    data$subgroup_number <- NA_integer_
+  }
+
   # Split the data by phase
   data_list <- split(data, data$phase)
 
@@ -65,7 +70,7 @@ interpret <- function(data) {
         subgroup_number <- subdata$subgroup_number[start_index]
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Shift",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
+                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = ifelse(is.na(subgroup_number), -1, subgroup_number), stringsAsFactors = FALSE))
       }
       pos <- pos + rle_shift$lengths[i]
     }
@@ -91,26 +96,48 @@ interpret <- function(data) {
 
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Trend",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
+                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = ifelse(is.na(subgroup_number), -1, subgroup_number), stringsAsFactors = FALSE))
       }
       pos <- pos + rle_trend$lengths[i]
     }
 
     # Detect Long Runs of 15+
     rle_fifteen <- rle(subdata$fifteen_more)
+    pos <- 1
+    print(paste("RLE Values:", toString(rle_fifteen$values)))
+    print(paste("RLE Lengths:", toString(rle_fifteen$lengths)))
+
     for (i in seq_along(rle_fifteen$values)) {
       if (rle_fifteen$values[i] == TRUE && rle_fifteen$lengths[i] >= 15) {
         start_index <- if (i > 1) sum(rle_fifteen$lengths[1:(i-1)]) + 1 else 1
         end_index <- sum(rle_fifteen$lengths[1:i])
+        print(paste("Dynamic Start Index:", start_index))
+        print(paste("Dynamic End Index:", end_index))
+
         start_date <- subdata$x[start_index]
         end_date <- subdata$x[end_index]
+
+        print(paste("Start Date:", start_date))
+        print(paste("End Date:", end_date))
+
         row_number <- subdata$row_number[start_index]
         subgroup_number <- subdata$subgroup_number[start_index]
 
-        phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "15+",
-                                                         Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
+        # Additional debug prints
+        print(paste("Row Number:", row_number))
+        print(paste("Subgroup Number:", ifelse(is.na(subgroup_number), -1, subgroup_number)))
+        print(paste("Phase:", phase))
+
+        # Ensure all components are non-empty and have the correct lengths
+        if (length(start_date) > 0 && length(end_date) > 0 && length(row_number) > 0) {
+          phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "15+",
+                                                           Duration = paste(start_date, end_date, sep = " - "),
+                                                           Phase = phase, RowNumber = row_number, SubgroupNumber = ifelse(is.na(subgroup_number), -1, subgroup_number), stringsAsFactors = FALSE))
+        } else {
+          print("Skipping due to empty components")
+        }
       }
+      pos <- pos + rle_fifteen$lengths[i]
     }
 
     # Detect Sigma Signals
@@ -121,7 +148,7 @@ interpret <- function(data) {
       subgroup_number <- subdata$subgroup_number[i]
       phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Sigma Signal",
                                                        Duration = as.character(date_point),
-                                                       Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
+                                                       Phase = phase, RowNumber = row_number, SubgroupNumber = ifelse(is.na(subgroup_number), -1, subgroup_number), stringsAsFactors = FALSE))
     }
 
     # Apply the 'Two Out of Three' rule
@@ -134,7 +161,7 @@ interpret <- function(data) {
           subgroup_number <- subdata$subgroup_number[i-2]
           phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Two Out of Three",
                                                            Duration = paste(start_date, end_date, sep = " - "),
-                                                           Phase = phase, RowNumber = row_number, SubgroupNumber = subgroup_number))
+                                                           Phase = phase, RowNumber = row_number, SubgroupNumber = ifelse(is.na(subgroup_number), -1, subgroup_number), stringsAsFactors = FALSE))
         }
       }
     }

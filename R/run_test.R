@@ -51,7 +51,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     title = rgb(27, 87, 104, maxColorValue = 255),
     annotation = rgb(40, 40, 40, maxColorValue = 255),
     annotation_line = rgb(169, 169, 169, maxColorValue = 255),
-    special = rgb(134, 87, 74, maxColorValue = 255),
+    special = rgb(255,182,193, maxColorValue = 255),
     shift_pattern = rgb(195,100,77, maxColorValue = 255),
     fifteen_more = rgb(197, 92, 217, maxColorValue = 255),
     trend_stability = rgb(77,134,195, maxColorValue = 255),
