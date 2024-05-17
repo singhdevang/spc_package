@@ -2,7 +2,7 @@
 
 export(create_spc_data)
 export(create_spc_data_pu)
-export(create_spc_data_xs)
+export(create_spc_dataframe)
 export(interpret)
 export(make_chart)
 export(run_test)

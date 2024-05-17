@@ -51,10 +51,10 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     title = rgb(27, 87, 104, maxColorValue = 255),
     annotation = rgb(40, 40, 40, maxColorValue = 255),
     annotation_line = rgb(169, 169, 169, maxColorValue = 255),
-    special = rgb(157, 15, 78, maxColorValue = 255),
-    shift_pattern = rgb(153, 215, 216, maxColorValue = 255),
-    fifteen_more = rgb(255, 225, 138, maxColorValue = 255),
-    trend_stability = rgb(190, 190, 190, maxColorValue = 255),
+    special = rgb(134, 87, 74, maxColorValue = 255),
+    shift_pattern = rgb(195,100,77, maxColorValue = 255),
+    fifteen_more = rgb(197, 92, 217, maxColorValue = 255),
+    trend_stability = rgb(77,134,195, maxColorValue = 255),
     normal = rgb(255, 255, 255, maxColorValue = 255),
     two_of_three = rgb(0, 0, 0, maxColorValue = 255)
   )
@@ -115,13 +115,12 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
       pos <- pos + rle_trend$lengths[i]
     }
 
+
     # Two out of three rule
     for (i in 3:nrow(df)) {
       if (sum(df$two_more[(i-2):i], na.rm = TRUE) >= 2) {
-        if (all(fill_conditions[(i-2):i] == "Normal")) {
-          fill_conditions[(i-2):i] <- "Two Out of Three"
-          fill_colors[(i-2):i] <- colors$two_of_three
-        }
+        fill_conditions[(i-2):i] <- "Two Out of Three"
+        fill_colors[(i-2):i] <- colors$two_of_three
       }
     }
 

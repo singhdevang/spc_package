@@ -22,7 +22,7 @@
 #' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
 #'                    value = rnorm(30, 100, 15))
 #' create_spc_data(data, 'date', 'value', 'xbar', phase = c(10, 20))
-create_spc_data_xs <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
+create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
   # Ensure required packages are loaded
 
 
