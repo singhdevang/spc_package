@@ -56,7 +56,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     fifteen_more = rgb(197, 92, 217, maxColorValue = 255),
     trend_stability = rgb(77,134,195, maxColorValue = 255),
     normal = rgb(255, 255, 255, maxColorValue = 255),
-    two_of_three = rgb(0, 0, 0, maxColorValue = 255)
+    two_of_three = rgb(58, 163, 38, maxColorValue = 255)
   )
 
   # Split data by phase
@@ -119,8 +119,10 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     # Two out of three rule
     for (i in 3:nrow(df)) {
       if (sum(df$two_more[(i-2):i], na.rm = TRUE) >= 2) {
-        fill_conditions[(i-2):i] <- "Two Out of Three"
-        fill_colors[(i-2):i] <- colors$two_of_three
+        if (all(fill_conditions[(i-2):i] == "Normal")) {
+          fill_conditions[(i-2):i] <- "Two Out of Three"
+          fill_colors[(i-2):i] <- colors$two_of_three
+        }
       }
     }
 
@@ -128,6 +130,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
     df$fill_colors <- fill_colors
     return(df)
   }
+
 
   # Apply highlighting to each phase
   data_list <- lapply(data_list, apply_highlighting)

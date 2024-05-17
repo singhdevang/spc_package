@@ -83,6 +83,10 @@ create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = 
       modified_data$y > modified_data$cl_minus_1sigma,  # Condition when shift is TRUE
       modified_data$y < modified_data$cl_plus_1sigma    # Condition when shift is FALSE
     )
+
+    # Define two_more based on two sigma limits and control limits
+    modified_data$two_more <- ifelse(modified_data$shift, modified_data$y > modified_data$cl_minus_2sigma & modified_data$y < modified_data$lcl,
+                                  ifelse(!modified_data$shift, modified_data$y > modified_data$cl_plus_2sigma & modified_data$y < modified_data$ucl, FALSE))
     # Ensure the phase column is carried over correctly
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
