@@ -169,7 +169,7 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
       axis.text.y = element_text(color = "darkgray"),
       axis.ticks = element_line(color = "darkgray"),
       axis.line = element_line(color = "darkgray"),
-      plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1, family = "Arial"),
+      plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1),
       plot.caption.position = "plot"
     )
 
@@ -182,31 +182,28 @@ run_test <- function(data, chart_title = "", chart_title_size = 14, caption = ""
   if (caption != "") {
     p <- p + labs(caption = caption)
   }
-
   # Conditionally add annotations if provided
   if (!is.null(annotations) && nrow(annotations) > 0) {
-    for (i in 1:nrow(annotations)) {
-      annotation <- annotations[i, ]
-      row_number <- annotation$row_number
-      label <- annotation$label
-      text_size <- annotation$text_size
-      position_x <- annotation$position_x
-      position_y <- annotation$position_y
+    # Add columns to annotations for plotting
+    annotations$x <- data$x[annotations$row_number]
+    annotations$y <- data$y[annotations$row_number]
 
-      # Get x and y values for the annotation based on row number
-      x_value <- as.character(data$x[row_number])
-      y_value <- data$y[row_number]
+    # Convert x to factor to get levels and then to numeric index
+    data$x_factor <- factor(data$x, levels = unique(data$x))
+    annotations$x_index <- as.numeric(factor(annotations$x, levels = levels(data$x_factor)))
 
-      # Adjust x position as a factor shift
-      x_position <- which(levels(factor(data$x)) == x_value) + position_x
+    # Adjust x positions based on position_x
+    annotations$label_x <- annotations$x_index + annotations$position_x
+    annotations$label_x <- factor(annotations$label_x, levels = seq_along(levels(data$x_factor)))
+    annotations$label_x <- levels(data$x_factor)[pmin(pmax(as.numeric(annotations$label_x), 1), length(levels(data$x_factor)))]
 
-      # Add segment and text for the annotation
-      p <- p +
-        geom_segment(aes(x = x_value, y = y_value + 0.1, xend = levels(factor(data$x))[x_position], yend = y_value + position_y),
-                     color = colors$annotation_line, size = 0.5) +
-        geom_text(aes(x = levels(factor(data$x))[x_position], y = y_value + position_y, label = label),
-                  color = colors$annotation, size = text_size, family = "Arial", hjust = 0.5, vjust = -0.3)  # Adjusted vjust to move label up
-    }
+    # Adjust starting point of annotation line to be on the border of the data point
+    point_radius <- 0.5  # Adjusted for size of the data point
+    p <- p +
+      geom_segment(data = annotations, aes(x = x, y = y + point_radius, xend = label_x, yend = y + position_y),
+                   color = colors$annotation_line, size = 0.5) +
+      geom_text(data = annotations, aes(x = label_x, y = y + position_y, label = label),
+                color = colors$annotation, size = annotations$text_size, hjust = 0.5, vjust = -0.3)
   }
 
   return(p)

@@ -71,19 +71,10 @@ make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = 
   # Prepare data by phase if phase column exists
   data_list <- split(data, data$phase)
 
-  # Create the plot with ggplot2
+  # Create the initial plot with ggplot2
   p <- ggplot(data, aes(x = x)) +
-    lapply(data_list, function(df) {
-      list(
-        geom_line(data = df, aes(y = cl, group = 1), color = colors$cl, size = 1.25),
-        geom_line(data = df, aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5),
-        geom_line(data = df, aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5)
-      )
-    }) +
-    geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +  # Now plotting y last so it's on top
-    geom_point(aes(y = y), color = colors$y, fill = "white", shape = 21, size = 3) +  # Plotting points last as well
     scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +  # Explicitly set breaks and labels
-    theme_minimal(base_family = "sans") +
+    theme_minimal() +
     theme(
       plot.title = element_text(color = colors$title, size = chart_title_size, hjust = 0.5),
       plot.background = element_blank(),
@@ -94,9 +85,22 @@ make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = 
       axis.text.y = element_text(color = "darkgray"),
       axis.ticks = element_line(color = "darkgray"),
       axis.line = element_line(color = "darkgray"),
-      plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1, family = "Arial"),
+      plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1),
       plot.caption.position = "plot"
     )
+
+  # Add phase-based layers
+  for (df in data_list) {
+    p <- p +
+      geom_line(data = df, aes(y = cl, group = 1), color = colors$cl, size = 1.25) +
+      geom_line(data = df, aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
+      geom_line(data = df, aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5)
+  }
+
+  # Add y line and points last so they're on top
+  p <- p +
+    geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +
+    geom_point(aes(y = y), color = colors$y, fill = "white", shape = 21, size = 3)
 
   # Conditionally add chart title if provided
   if (chart_title != "") {
@@ -110,28 +114,26 @@ make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = 
 
   # Conditionally add annotations if provided
   if (!is.null(annotations) && nrow(annotations) > 0) {
-    for (i in 1:nrow(annotations)) {
-      annotation <- annotations[i, ]
-      row_number <- annotation$row_number
-      label <- annotation$label
-      text_size <- annotation$text_size
-      position_x <- annotation$position_x
-      position_y <- annotation$position_y
+    # Add columns to annotations for plotting
+    annotations$x <- data$x[annotations$row_number]
+    annotations$y <- data$y[annotations$row_number]
 
-      # Get x and y values for the annotation based on row number
-      x_value <- as.character(data$x[row_number])
-      y_value <- data$y[row_number]
+    # Convert x to factor to get levels and then to numeric index
+    data$x_factor <- factor(data$x, levels = unique(data$x))
+    annotations$x_index <- as.numeric(factor(annotations$x, levels = levels(data$x_factor)))
 
-      # Adjust x position as a factor shift
-      x_position <- which(levels(factor(data$x)) == x_value) + position_x
+    # Adjust x positions based on position_x
+    annotations$label_x <- annotations$x_index + annotations$position_x
+    annotations$label_x <- factor(annotations$label_x, levels = seq_along(levels(data$x_factor)))
+    annotations$label_x <- levels(data$x_factor)[pmin(pmax(as.numeric(annotations$label_x), 1), length(levels(data$x_factor)))]
 
-      # Add segment and text for the annotation
-      p <- p +
-        geom_segment(aes(x = x_value, y = y_value + 0.1, xend = levels(factor(data$x))[x_position], yend = y_value + position_y),
-                     color = colors$annotation_line, size = 0.5) +
-        geom_text(aes(x = levels(factor(data$x))[x_position], y = y_value + position_y, label = label),
-                  color = colors$annotation, size = text_size, family = "Arial", hjust = 0.5, vjust = -0.3)  # Adjusted vjust to move label up
-    }
+    # Adjust starting point of annotation line to be on the border of the data point
+    point_radius <- 0.5  # Adjusted for size of the data point
+    p <- p +
+      geom_segment(data = annotations, aes(x = x, y = y + point_radius, xend = label_x, yend = y + position_y),
+                   color = colors$annotation_line, size = 0.5) +
+      geom_text(data = annotations, aes(x = label_x, y = y + position_y, label = label),
+                color = colors$annotation, size = annotations$text_size, hjust = 0.5, vjust = -0.3)
   }
 
   return(p)
