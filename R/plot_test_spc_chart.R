@@ -28,8 +28,8 @@
 #'   position_x = c(1, -1),
 #'   position_y = c(10, -10)
 #' )
-#' run_test(data, "Comprehensive Monthly SPC Chart", annotations = annotations)
-run_test <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
+#' plot_test_spc_chart(data, "Comprehensive Monthly SPC Chart", annotations = annotations)
+plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
   # Ensure 'x' is a Date object
   if (!inherits(data$x, "Date")) {
     data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H",

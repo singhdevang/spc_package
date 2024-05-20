@@ -36,12 +36,12 @@
 #'   row_number = c(3, 9),
 #'   label = c("Annotation 1", "Annotation 2"),
 #'   text_size = c(4, 4),
-#'   position_x = c(0.2, -0.2),
-#'   position_y = c(10, -10)
+#'   position_x = c(0.2, 0),
+#'   position_y = c(10, 10)
 #' )
-#' chart <- make_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10, annotations)
+#' chart <- plot_spc_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10, annotations)
 #' print(chart)
-make_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
+plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
   # Ensure that 'x' is a Date object if not already
   if (!inherits(data$x, "Date")) {
     data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H",
