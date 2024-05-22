@@ -32,16 +32,17 @@
 plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
   # Ensure 'x' is a Date object
   if (!inherits(data$x, "Date")) {
-    data$x <- parse_date_time(data$x, orders = c("ymd_HMS", "ymd_HM", "ymd_H",
-                                                 "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
-                                                 "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
-                                                 "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
-                                                 "ym"))
+    data$x <- parse_date_time(data$x, orders = c("my", "ym", "ymd", "mdy", "dmy", "ydm",
+                                                 "ymd_HMS", "ymd_HM", "ymd_H",
+                                                 "mdy_HMS", "mdy_HM", "mdy_H",
+                                                 "dmy_HMS", "dmy_HM", "dmy_H",
+                                                 "ydm_HMS", "ydm_HM", "ydm_H"))
     if (!inherits(data$x, "Date")) {
       data$x <- as.Date(data$x)
     }
   }
   data$x <- as.character(data$x)  # Convert dates to character for categorical plotting
+
 
   # Define color palette
   colors <- list(

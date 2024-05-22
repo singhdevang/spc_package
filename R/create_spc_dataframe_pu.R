@@ -26,11 +26,12 @@
 create_spc_dataframe_pu <- function(data, date_col, num_col, den_col, chart_type, phase = numeric(0)) {
   # Parse the date column using common date formats
   data[[date_col]] <- parse_date_time(data[[date_col]],
-                                      orders = c("ymd_HMS", "ymd_HM", "ymd_H", "ymd",
-                                                 "mdy_HMS", "mdy_HM", "mdy_H", "mdy",
-                                                 "dmy_HMS", "dmy_HM", "dmy_H", "dmy",
-                                                 "ydm_HMS", "ydm_HM", "ydm_H", "ydm",
-                                                 "ym"))
+                                      orders = c("my", "ym", "ymd", "mdy", "dmy", "ydm",
+                                                 "ymd_HMS", "ymd_HM", "ymd_H",
+                                                 "mdy_HMS", "mdy_HM", "mdy_H",
+                                                 "dmy_HMS", "dmy_HM", "dmy_H",
+                                                 "ydm_HMS", "ydm_HM", "ydm_H"))
+
 
   # Initialize phase column
   chart_data <- data
