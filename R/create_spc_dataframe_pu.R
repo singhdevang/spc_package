@@ -1,6 +1,6 @@
-#' Create SPC Data for P-Charts and U-Charts with Dynamic Phases
+#' Create SPC Data for P-Charts, U-Charts, P-Prime Charts, and U-Prime Charts with Dynamic Phases
 #'
-#' This function creates Statistical Process Control (SPC) chart data specifically for p-charts and u-charts.
+#' This function creates Statistical Process Control (SPC) chart data specifically for p-charts, u-charts, p-prime charts, and u-prime charts.
 #' It ensures non-negative Lower Control Limits (LCL) and integrates additional statistical calculations such as trend analysis,
 #' shift detection, sigma levels with control limits, and dynamic phase adjustments based on input.
 #'
@@ -8,7 +8,7 @@
 #' @param date_col Name of the date column.
 #' @param num_col Name of the numerator column (defects or defectives).
 #' @param den_col Name of the denominator column (sample size or units).
-#' @param chart_type Type of SPC chart to create ('p' for p-chart, 'u' for u-chart).
+#' @param chart_type Type of SPC chart to create ('p' for p-chart, 'u' for u-chart, 'pp' for p-prime chart, 'up' for u-prime chart).
 #' @param phase A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
 #'              Each specified row starts a new phase, incrementing by 1 from the previous phase.
 #'              If left blank, all phases default to 1.
@@ -17,12 +17,23 @@
 #' @export
 #' @importFrom qicharts2 qic
 #' @importFrom lubridate parse_date_time
-#' @importFrom dplyr mutate row_number select everything
+#' @importFrom dplyr mutate row_number select everything group_by summarise ungroup
 #' @examples
 #' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 12),
 #'                    defects = c(5, 6, 2, 8, 5, 9, 3, 4, 7, 1, 3, 2),
 #'                    units = c(100, 90, 110, 100, 95, 105, 100, 95, 100, 90, 95, 105))
-#' create_spc_data_pu(data, 'date', 'defects', 'units', 'u', phase = c(5, 10))
+#'
+#' # Example for p-chart
+#' create_spc_dataframe_pu(data, 'date', 'defects', 'units', 'p', phase = c(5, 10))
+#'
+#' # Example for u-chart
+#' create_spc_dataframe_pu(data, 'date', 'defects', 'units', 'u', phase = c(5, 10))
+#'
+#' # Example for p-prime chart
+#' create_spc_dataframe_pu(data, 'date', 'defects', 'units', 'pp', phase = c(5, 10))
+#'
+#' # Example for u-prime chart
+#' create_spc_dataframe_pu(data, 'date', 'defects', 'units', 'up', phase = c(5, 10))
 create_spc_dataframe_pu <- function(data, date_col, num_col, den_col, chart_type, phase = numeric(0)) {
   # Parse the date column using common date formats
   data[[date_col]] <- parse_date_time(data[[date_col]],

@@ -55,8 +55,8 @@ annotations <- data.frame(
   row_number = c(3, 9),
   label = c("Annotation 1", "Annotation 2"),
   text_size = c(4, 4),
-  position_x = c(0.2, -0.2),
-  position_y = c(10, 0)
+  position_x = c(0.2, 0),
+  position_y = c(10, 10)
 )
 chart <- plot_spc_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10, annotations)
 print(chart)

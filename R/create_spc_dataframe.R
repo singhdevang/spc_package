@@ -1,27 +1,30 @@
-#' Create SPC Data with Dynamic Phases
+#' Create SPC Data for Xbar, S, R, I, MR, C, T, G charts with Dynamic Phases
 #'
-#' This function creates Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
+#' This function creates Statistical Process Control (SPC) chart data specifically for xbar, s, r, i, mr, c, t, g charts and ensures LCL values are not negative.
 #' It includes multiple statistical calculations such as shift detection, trend analysis, sigma levels with control limits,
 #' and dynamic phase adjustments based on input.
 #'
-#' @param data Data frame containing the data
-#' @param date_col Name of the date column
-#' @param value_col Name of the value column
-#' @param chart_type Type of SPC chart to create
-#' @param phase A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
-#'              Each specified row starts a new phase, incrementing by 1 from the previous phase.
-#'              If left blank, all phases default to 1.
+#' @param data Data frame containing the data.
+#' @param date_col Name of the date column.
+#' @param value_col Name of the value column.
+#' @param chart_type Type of SPC chart to create ('xbar', 's', 'r', 'i', 'mr', 'c', 't', 'g').
+#' @param phase A vector of numeric values specifying row numbers or subgroup numbers from which the phase value should incrementally increase. \cr
+#' If the chart_type is 'xbar', 's', or 'r', use `subgroup_number` for phasing. \cr
+#' For 'i', 'mr', 'c', 't', and 'g' charts, use `row_number` for phasing. \cr
+#' Each specified row or subgroup starts a new phase, incrementing by 1 from the previous phase. \cr
+#' If left blank, all phases default to 1.
+
 #' @return Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations,
 #'         additional control limit assessments, and dynamic phase adjustments.
 #' @export
 #' @importFrom qicharts2 qic
 #' @importFrom lubridate parse_date_time floor_date
-#' @importFrom dplyr mutate row_number select everything group_by summarise ungroup
+#' @importFrom dplyr mutate row_number select everything group_by summarise ungroup cur_group_id
 #' @importFrom rlang sym
 #' @examples
 #' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
 #'                    value = rnorm(30, 100, 15))
-#' create_spc_data(data, 'date', 'value', 'xbar', phase = c(10, 20))
+#' create_spc_dataframe(data, 'date', 'value', 'xbar', phase = c(10, 20))
 create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
   # Ensure required packages are loaded
   # Try to parse the date column using common date formats

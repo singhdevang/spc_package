@@ -2,21 +2,23 @@
 % Please edit documentation in R/create_spc_dataframe.R
 \name{create_spc_dataframe}
 \alias{create_spc_dataframe}
-\title{Create SPC Data with Dynamic Phases}
+\title{Create SPC Data for Xbar, S, R, I, MR, C, T, G charts with Dynamic Phases}
 \usage{
 create_spc_dataframe(data, date_col, value_col, chart_type, phase = numeric(0))
 }
 \arguments{
-\item{data}{Data frame containing the data}
+\item{data}{Data frame containing the data.}
 
-\item{date_col}{Name of the date column}
+\item{date_col}{Name of the date column.}
 
-\item{value_col}{Name of the value column}
+\item{value_col}{Name of the value column.}
 
-\item{chart_type}{Type of SPC chart to create}
+\item{chart_type}{Type of SPC chart to create ('xbar', 's', 'r', 'i', 'mr', 'c', 't', 'g').}
 
-\item{phase}{A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
-Each specified row starts a new phase, incrementing by 1 from the previous phase.
+\item{phase}{A vector of numeric values specifying row numbers or subgroup numbers from which the phase value should incrementally increase. \cr
+If the chart_type is 'xbar', 's', or 'r', use \code{subgroup_number} for phasing. \cr
+For 'i', 'mr', 'c', 't', and 'g' charts, use \code{row_number} for phasing. \cr
+Each specified row or subgroup starts a new phase, incrementing by 1 from the previous phase. \cr
 If left blank, all phases default to 1.}
 }
 \value{
@@ -24,12 +26,12 @@ Returns a data frame with SPC data including adjusted LCL values, shift, trend, 
 additional control limit assessments, and dynamic phase adjustments.
 }
 \description{
-This function creates Statistical Process Control (SPC) chart data and ensures LCL values are not negative.
+This function creates Statistical Process Control (SPC) chart data specifically for xbar, s, r, i, mr, c, t, g charts and ensures LCL values are not negative.
 It includes multiple statistical calculations such as shift detection, trend analysis, sigma levels with control limits,
 and dynamic phase adjustments based on input.
 }
 \examples{
 data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
                    value = rnorm(30, 100, 15))
-create_spc_data(data, 'date', 'value', 'xbar', phase = c(10, 20))
+create_spc_dataframe(data, 'date', 'value', 'xbar', phase = c(10, 20))
 }
