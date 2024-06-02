@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_test_spc_chart.R
 \name{plot_test_spc_chart}
 \alias{plot_test_spc_chart}
-\title{Run SPC Chart Test with Advanced Highlighting and Phase Handling}
+\title{Run SPC Chart Test with Advanced Highlighting with Phase Handling and Annotations}
 \usage{
 plot_test_spc_chart(
   data,
