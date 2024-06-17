@@ -118,13 +118,20 @@ plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, captio
     # Adjust x positions based on position_x
     annotations$label_x <- annotations$x + annotations$position_x
 
-    # Adjust starting point of annotation line to be on the border of the data point
+    # Adjust starting point of annotation line based on position_y
     point_radius <- 0.5  # Adjusted for size of the data point
     p <- p +
-      geom_segment(data = annotations, aes(x = x, y = y + point_radius, xend = label_x, yend = y + position_y),
-                   color = colors$annotation_line, size = 0.5) +
-      geom_text(data = annotations, aes(x = label_x, y = y + position_y, label = label),
-                color = colors$annotation, size = annotations$text_size, hjust = 0.5, vjust = -0.3)
+      geom_segment(data = annotations, aes(
+        x = x,
+        y = ifelse(position_y > 0, y + point_radius, y - point_radius),
+        xend = label_x,
+        yend = y + position_y
+      ), color = colors$annotation_line, size = 0.5) +
+      geom_text(data = annotations, aes(
+        x = label_x,
+        y = y + position_y,
+        label = label
+      ), color = colors$annotation, size = annotations$text_size, hjust = 0.5, vjust = ifelse(annotations$position_y > 0, -0.3, 1.3))
   }
 
   return(p)
