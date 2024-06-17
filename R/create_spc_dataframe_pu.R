@@ -12,6 +12,7 @@
 #' @param phase A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
 #'              Each specified row starts a new phase, incrementing by 1 from the previous phase.
 #'              If left blank, all phases default to 1.
+#'              Use value in the `phase_number` column for phasing. \cr
 #' @return Returns a data frame with SPC data including adjusted LCL values, shifts, trends, sigma calculations,
 #'         additional control limit assessments, and dynamic phase adjustments.
 #' @export
@@ -107,9 +108,9 @@ create_spc_dataframe_pu <- function(data, date_col, num_col, den_col, chart_type
     # Ensure the phase column is carried over correctly
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
-    # Map subgroup_number to modified_data
+    # Map phase_number to modified_data
     modified_data <- modified_data |>
-      mutate(subgroup_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
+      mutate(phase_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
 
     return(modified_data)
   })
@@ -119,8 +120,8 @@ create_spc_dataframe_pu <- function(data, date_col, num_col, den_col, chart_type
 
   # Add row_number as the first column
   final_data <- final_data |>
-    mutate(row_number = row_number()) |>
-    select(row_number, subgroup_number, everything())
+    mutate(serial_number = row_number()) |>
+    select(serial_number, phase_number, everything())
 
   return(final_data)
 }

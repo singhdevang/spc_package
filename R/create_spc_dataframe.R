@@ -9,8 +9,7 @@
 #' @param value_col Name of the value column.
 #' @param chart_type Type of SPC chart to create ('xbar', 's', 'r', 'i', 'mr', 'c', 't', 'g').
 #' @param phase A vector of numeric values specifying row numbers or subgroup numbers from which the phase value should incrementally increase. \cr
-#' If the chart_type is 'xbar', 's', or 'r', use `subgroup_number` for phasing. \cr
-#' For 'i', 'mr', 'c', 't', and 'g' charts, use `row_number` for phasing. \cr
+#' Use value in the `phase_number` column for phasing. \cr
 #' Each specified row or subgroup starts a new phase, incrementing by 1 from the previous phase. \cr
 #' If left blank, all phases default to 1.
 
@@ -25,6 +24,7 @@
 #' data <- data.frame(date = seq(as.Date('2020-01-01'), by = 'month', length.out = 30),
 #'                    value = rnorm(30, 100, 15))
 #' create_spc_dataframe(data, 'date', 'value', 'xbar', phase = c(10, 20))
+
 create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = numeric(0)) {
   # Ensure required packages are loaded
   # Try to parse the date column using common date formats
@@ -94,9 +94,9 @@ create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = 
     # Ensure the phase column is carried over correctly
     modified_data$phase <- subdata$phase[1]  # Assign phase based on original subdata
 
-    # Map subgroup_number to modified_data
+    # Map phase_number to modified_data
     modified_data <- modified_data |>
-      mutate(subgroup_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
+      mutate(phase_number = rep(subgroup_starts$subgroup_start, length.out = nrow(modified_data)))
 
     return(modified_data)
   })
@@ -106,8 +106,8 @@ create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = 
 
   # Add row_number as the first column
   final_data <- final_data |>
-    mutate(row_number = row_number()) |>
-    select(row_number, subgroup_number,everything())
+    mutate(serial_number = row_number()) |>
+    select(serial_number, phase_number,everything())
 
   return(final_data)
 }

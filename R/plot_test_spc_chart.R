@@ -16,7 +16,7 @@
 #'        specify the offset for the annotation text relative to the point.
 #' @return A ggplot object representing the SPC chart with customized aesthetics.
 #' @export
-#' @importFrom ggplot2 ggplot geom_line geom_point geom_text geom_segment aes labs scale_x_discrete theme_minimal theme element_text element_blank scale_fill_manual
+#' @importFrom ggplot2 ggplot geom_line geom_point geom_text geom_segment aes labs scale_x_discrete theme_minimal scale_x_date theme element_text element_blank scale_fill_manual
 #' @importFrom lubridate parse_date_time
 #' @importFrom grDevices rgb
 #' @examples
@@ -41,8 +41,6 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
       data$x <- as.Date(data$x)
     }
   }
-  data$x <- as.character(data$x)  # Convert dates to character for categorical plotting
-
 
   # Define color palette
   colors <- list(
@@ -50,14 +48,14 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
     cl = rgb(216, 159, 62, maxColorValue = 255),
     lcl_ucl = rgb(190, 190, 190, maxColorValue = 255),
     title = rgb(27, 87, 104, maxColorValue = 255),
-    annotation = rgb(40, 40, 40, maxColorValue = 255),
+    annotation = rgb(78,78,78, maxColorValue = 255),
     annotation_line = rgb(169, 169, 169, maxColorValue = 255),
-    special = rgb(255,182,193, maxColorValue = 255),
-    shift_pattern = rgb(195,100,77, maxColorValue = 255),
-    fifteen_more = rgb(197, 92, 217, maxColorValue = 255),
-    trend_stability = rgb(77,134,195, maxColorValue = 255),
+    special = rgb(157,15,78, maxColorValue = 255),
+    shift_pattern = rgb(190,114,157, maxColorValue = 255),
+    fifteen_more = rgb(58,166,216, maxColorValue = 255),
+    trend_stability = rgb(153,215,216, maxColorValue = 255),
     normal = rgb(255, 255, 255, maxColorValue = 255),
-    two_of_three = rgb(58, 163, 38, maxColorValue = 255)
+    two_of_three = rgb(109,164,47, maxColorValue = 255)
   )
 
   # Split data by phase
@@ -116,7 +114,6 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
       pos <- pos + rle_trend$lengths[i]
     }
 
-
     # Two out of three rule
     for (i in 3:nrow(df)) {
       if (sum(df$two_more[(i-2):i], na.rm = TRUE) >= 2) {
@@ -131,7 +128,6 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
     df$fill_colors <- fill_colors
     return(df)
   }
-
 
   # Apply highlighting to each phase
   data_list <- lapply(data_list, apply_highlighting)
@@ -158,8 +154,7 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
       "Trend" = colors$trend_stability,
       "Two Out of Three" = colors$two_of_three
     ), name = NULL) +
-    labs(title = chart_title) +
-    scale_x_discrete(name = "Date", breaks = unique(highlighted_data$x), labels = unique(highlighted_data$x)) +
+    scale_x_date(name = "Date") +  # Use scale_x_date for date handling
     theme_minimal(base_family = "sans") +
     theme(
       plot.title = element_text(color = colors$title, size = chart_title_size, hjust = 0.5),
@@ -168,7 +163,7 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
       panel.background = element_blank(),
       legend.position = "bottom",
       axis.title = element_blank(),
-      axis.text.x = element_text(angle = 90, vjust = 0.5, color = "darkgray"),
+      axis.text.x = element_text(angle = 0, vjust = 0.5, color = "darkgray"),  # Set angle to 0 for horizontal text
       axis.text.y = element_text(color = "darkgray"),
       axis.ticks = element_line(color = "darkgray"),
       axis.line = element_line(color = "darkgray"),
@@ -185,20 +180,15 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
   if (caption != "") {
     p <- p + labs(caption = caption)
   }
+
   # Conditionally add annotations if provided
   if (!is.null(annotations) && nrow(annotations) > 0) {
     # Add columns to annotations for plotting
     annotations$x <- data$x[annotations$row_number]
     annotations$y <- data$y[annotations$row_number]
 
-    # Convert x to factor to get levels and then to numeric index
-    data$x_factor <- factor(data$x, levels = unique(data$x))
-    annotations$x_index <- as.numeric(factor(annotations$x, levels = levels(data$x_factor)))
-
     # Adjust x positions based on position_x
-    annotations$label_x <- annotations$x_index + annotations$position_x
-    annotations$label_x <- factor(annotations$label_x, levels = seq_along(levels(data$x_factor)))
-    annotations$label_x <- levels(data$x_factor)[pmin(pmax(as.numeric(annotations$label_x), 1), length(levels(data$x_factor)))]
+    annotations$label_x <- annotations$x + annotations$position_x
 
     # Adjust starting point of annotation line to be on the border of the data point
     point_radius <- 0.5  # Adjusted for size of the data point

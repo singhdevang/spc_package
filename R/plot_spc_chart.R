@@ -20,7 +20,7 @@
 #' @return A ggplot object representing the SPC chart with categorical date handling and
 #'         customized aesthetics, including phase handling.
 #' @export
-#' @importFrom ggplot2 ggplot geom_line geom_point geom_text geom_segment aes labs scale_x_discrete theme_minimal theme element_text element_blank element_line
+#' @importFrom ggplot2 ggplot geom_line geom_point scale_x_date geom_text geom_segment aes labs scale_x_discrete theme_minimal theme element_text element_blank element_line
 #' @importFrom lubridate parse_date_time
 #' @importFrom grDevices rgb
 #' @examples
@@ -55,8 +55,6 @@ plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, captio
     }
   }
 
-  # Convert dates to character for categorical plotting
-  data$x <- as.character(data$x)
   # Define color palette for the chart
   colors <- list(
     y = rgb(74, 121, 134, maxColorValue = 255),
@@ -72,7 +70,7 @@ plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, captio
 
   # Create the initial plot with ggplot2
   p <- ggplot(data, aes(x = x)) +
-    scale_x_discrete(name = "Date", breaks = unique(data$x), labels = unique(data$x)) +  # Explicitly set breaks and labels
+    scale_x_date(name = "Date") +  # Use scale_x_date for date handling
     theme_minimal() +
     theme(
       plot.title = element_text(color = colors$title, size = chart_title_size, hjust = 0.5),
@@ -80,7 +78,7 @@ plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, captio
       panel.grid = element_blank(),
       panel.background = element_blank(),
       axis.title = element_blank(),
-      axis.text.x = element_text(angle = 90, vjust = 0.5, color = "darkgray"),
+      axis.text.x = element_text(angle = 0, vjust = 0.5, color = "darkgray"),  # Set angle to 0 for horizontal text
       axis.text.y = element_text(color = "darkgray"),
       axis.ticks = element_line(color = "darkgray"),
       axis.line = element_line(color = "darkgray"),
@@ -117,14 +115,8 @@ plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, captio
     annotations$x <- data$x[annotations$row_number]
     annotations$y <- data$y[annotations$row_number]
 
-    # Convert x to factor to get levels and then to numeric index
-    data$x_factor <- factor(data$x, levels = unique(data$x))
-    annotations$x_index <- as.numeric(factor(annotations$x, levels = levels(data$x_factor)))
-
     # Adjust x positions based on position_x
-    annotations$label_x <- annotations$x_index + annotations$position_x
-    annotations$label_x <- factor(annotations$label_x, levels = seq_along(levels(data$x_factor)))
-    annotations$label_x <- levels(data$x_factor)[pmin(pmax(as.numeric(annotations$label_x), 1), length(levels(data$x_factor)))]
+    annotations$label_x <- annotations$x + annotations$position_x
 
     # Adjust starting point of annotation line to be on the border of the data point
     point_radius <- 0.5  # Adjusted for size of the data point

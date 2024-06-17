@@ -16,8 +16,7 @@ create_spc_dataframe(data, date_col, value_col, chart_type, phase = numeric(0))
 \item{chart_type}{Type of SPC chart to create ('xbar', 's', 'r', 'i', 'mr', 'c', 't', 'g').}
 
 \item{phase}{A vector of numeric values specifying row numbers or subgroup numbers from which the phase value should incrementally increase. \cr
-If the chart_type is 'xbar', 's', or 'r', use \code{subgroup_number} for phasing. \cr
-For 'i', 'mr', 'c', 't', and 'g' charts, use \code{row_number} for phasing. \cr
+Use value in the \code{phase_number} column for phasing. \cr
 Each specified row or subgroup starts a new phase, incrementing by 1 from the previous phase. \cr
 If left blank, all phases default to 1.}
 }

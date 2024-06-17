@@ -26,7 +26,8 @@ create_spc_dataframe_pu(
 
 \item{phase}{A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
 Each specified row starts a new phase, incrementing by 1 from the previous phase.
-If left blank, all phases default to 1.}
+If left blank, all phases default to 1.
+Use value in the \code{phase_number} column for phasing. \cr}
 }
 \value{
 Returns a data frame with SPC data including adjusted LCL values, shifts, trends, sigma calculations,
