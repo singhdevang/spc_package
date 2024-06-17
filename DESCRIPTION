@@ -4,7 +4,8 @@ Version: 0.0.0.9001
 Author: Improvement Cymru Analytics Team <analytics-improvementcymru@wales.nhs.uk>
 Maintainer: Improvement Cymru Analytics Team <analytics-improvementcymru@wales.nhs.uk>
 Description: This package facilitates the creation of Statistical Process Control (SPC) data frames, plots them according to Improvement Cymru brand guidelines, and performs interpretation by highlighting special causes of variation and organizing them in a table. It is designed to assist analysts and healthcare professionals in monitoring, understanding, and improving healthcare processes.
-License: MIT + file LICENSE
+License: OGL-UK-3.0
+URL: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
 Imports:
     ggplot2,
     dplyr,
