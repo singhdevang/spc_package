@@ -9,8 +9,8 @@
 #' @param num_col Name of the numerator column (defects or defectives).
 #' @param den_col Name of the denominator column (sample size or units).
 #' @param chart_type Type of SPC chart to create ('p' for p-chart, 'u' for u-chart, 'pp' for p-prime chart, 'up' for u-prime chart).
-#' @param phase A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
-#'              Each specified row starts a new phase, incrementing by 1 from the previous phase.
+#' @param phase A vector of numeric values specifying phase_numbers from which the phase value should incrementally increase.
+#'              Each specified phase_number starts a new phase, incrementing by 1 from the previous phase.
 #'              If left blank, all phases default to 1.
 #'              Use value in the `phase_number` column for phasing. \cr
 #' @return Returns a data frame with SPC data including adjusted LCL values, shifts, trends, sigma calculations,

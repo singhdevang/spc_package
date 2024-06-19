@@ -24,8 +24,8 @@ create_spc_dataframe_pu(
 
 \item{chart_type}{Type of SPC chart to create ('p' for p-chart, 'u' for u-chart, 'pp' for p-prime chart, 'up' for u-prime chart).}
 
-\item{phase}{A vector of numeric values specifying row numbers from which the phase value should incrementally increase.
-Each specified row starts a new phase, incrementing by 1 from the previous phase.
+\item{phase}{A vector of numeric values specifying phase_numbers from which the phase value should incrementally increase.
+Each specified phase_number starts a new phase, incrementing by 1 from the previous phase.
 If left blank, all phases default to 1.
 Use value in the \code{phase_number} column for phasing. \cr}
 }

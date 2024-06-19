@@ -8,9 +8,9 @@
 #' @param date_col Name of the date column.
 #' @param value_col Name of the value column.
 #' @param chart_type Type of SPC chart to create ('xbar', 's', 'r', 'i', 'mr', 'c', 't', 'g').
-#' @param phase A vector of numeric values specifying row numbers or subgroup numbers from which the phase value should incrementally increase. \cr
+#' @param phase A vector of numeric values specifying phase_numbers from which the phase value should incrementally increase. \cr
 #' Use value in the `phase_number` column for phasing. \cr
-#' Each specified row or subgroup starts a new phase, incrementing by 1 from the previous phase. \cr
+#' Each specified phase_number starts a new phase, incrementing by 1 from the previous phase. \cr
 #' If left blank, all phases default to 1.
 
 #' @return Returns a data frame with SPC data including adjusted LCL values, shift, trend, sigma calculations,
@@ -81,6 +81,7 @@ create_spc_dataframe <- function(data, date_col, value_col, chart_type, phase = 
     modified_data$cl_plus_2sigma <- modified_data$cl + 2 * modified_data$sigma
     modified_data$cl_minus_1sigma <- modified_data$cl - modified_data$sigma
     modified_data$cl_minus_2sigma <- modified_data$cl - 2 * modified_data$sigma
+
     # Define fifteen_more based on sigma limits
     modified_data$fifteen_more <- ifelse(
       modified_data$shift,

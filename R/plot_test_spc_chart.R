@@ -184,8 +184,8 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
   # Conditionally add annotations if provided
   if (!is.null(annotations) && nrow(annotations) > 0) {
     # Add columns to annotations for plotting
-    annotations$x <- data$x[annotations$row_number]
-    annotations$y <- data$y[annotations$row_number]
+    annotations$x <- data$x[annotations$serial_number]
+    annotations$y <- data$y[annotations$serial_number]
 
     # Adjust x positions based on position_x
     annotations$label_x <- annotations$x + annotations$position_x
