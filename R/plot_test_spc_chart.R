@@ -158,9 +158,8 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
       "Shift" = colors$shift_pattern,
       "15+" = colors$fifteen_more,
       "Trend" = colors$trend_stability,
-      "Two Out of Three" = colors$two_of_three,
-      "Runs Signal" = colors$run_signal
-    ), name = NULL,breaks = c("Normal", "Sigma Signal", "Shift", "15+", "Trend", "Two Out of Three", "Runs Signal")) +  # Specify breaks for correct legend order) +
+      "Two Out of Three" = colors$two_of_three
+    ), name = NULL) +
     scale_color_manual(values = c("Runs Signal" = colors$runs_signal)) +
     scale_x_date(name = "Date") +  # Use scale_x_date for date handling
     theme_minimal(base_family = "sans") +

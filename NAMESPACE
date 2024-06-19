@@ -3,6 +3,7 @@
 export(create_spc_dataframe)
 export(create_spc_dataframe_pu)
 export(interpret)
+export(plot_spc_chart)
 export(plot_test_spc_chart)
 importFrom(dplyr,cur_group_id)
 importFrom(dplyr,everything)
