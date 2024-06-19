@@ -1,82 +1,142 @@
-#' Create a Customized SPC Chart with Phase Handling and Annotations
-#'
-#' This function generates a statistical process control (SPC) chart from provided SPC data.
-#' It ensures that date columns are treated as categorical variables, allowing each unique
-#' date to be plotted without summarization. The function colors various components of the
-#' chart and uses discrete scaling for the x-axis to display all unique dates. If phase changes
-#' exist, it discontinues line connections between different phases. Additionally, it allows
-#' for custom annotations on the chart.
-#'
-#' @param data A data frame containing the SPC data including at least the columns 'x' for dates,
-#'        'y' for the measurement values, 'cl' for the centerline, 'lcl' for the lower control limit,
-#'        'ucl' for the upper control limit, and optionally 'phase' for indicating phase changes.
-#' @param chart_title A character string representing the title of the chart.
-#' @param chart_title_size Numeric value defaulted at 14 but can be changed according to need.
-#' @param caption Character string that can be used to enter the source of the data on the bottom right.
-#' @param caption_size Numeric value that is defaulted at 8 but can be used to change the size of the caption.
-#' @param annotations A data frame containing the annotations with columns 'row_number', 'label',
-#'        'text_size', 'position_x', 'position_y'. The 'position_x' and 'position_y' columns
-#'        specify the offset for the annotation text relative to the point.
-#' @return A ggplot object representing the SPC chart with categorical date handling and
-#'         customized aesthetics, including phase handling.
-#' @export
-#' @importFrom ggplot2 ggplot geom_line geom_point scale_x_date geom_text geom_segment aes labs scale_x_discrete theme_minimal theme element_text element_blank element_line
-#' @importFrom lubridate parse_date_time
-#' @importFrom grDevices rgb
-#' @examples
-#' data <- data.frame(
-#'   x = seq(as.Date("2021-01-01"), by = "month", length.out = 12),
-#'   y = rnorm(12, 100, 10),
-#'   cl = 100,
-#'   lcl = 85,
-#'   ucl = 115,
-#'   phase = rep(1:2, each = 6)
-#' )
-#' annotations <- data.frame(
-#'   row_number = c(3, 9),
-#'   label = c("Annotation 1", "Annotation 2"),
-#'   text_size = c(4, 4),
-#'   position_x = c(0.2, 0),
-#'   position_y = c(10, 10)
-#' )
-#' chart <- plot_spc_chart(data, "Monthly SPC Chart", 15, "Source: Imaginary database", 10, annotations)
-#' print(chart)
-plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
-  # Ensure that 'x' is a Date object if not already
+plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, caption = "", caption_size = 8, annotations = NULL) {
+  # Ensure 'x' is a Date object
   if (!inherits(data$x, "Date")) {
     data$x <- parse_date_time(data$x, orders = c("my", "ym", "ymd", "mdy", "dmy", "ydm",
                                                  "ymd_HMS", "ymd_HM", "ymd_H",
                                                  "mdy_HMS", "mdy_HM", "mdy_H",
                                                  "dmy_HMS", "dmy_HM", "dmy_H",
                                                  "ydm_HMS", "ydm_HM", "ydm_H"))
-    # Force convert to Date if necessary
     if (!inherits(data$x, "Date")) {
       data$x <- as.Date(data$x)
     }
   }
 
-  # Define color palette for the chart
+  # Define color palette
   colors <- list(
     y = rgb(74, 121, 134, maxColorValue = 255),
     cl = rgb(216, 159, 62, maxColorValue = 255),
     lcl_ucl = rgb(190, 190, 190, maxColorValue = 255),
     title = rgb(27, 87, 104, maxColorValue = 255),
-    annotation = rgb(0, 0, 0, maxColorValue = 255),
-    annotation_line = rgb(169, 169, 169, maxColorValue = 255)  # Gray for annotation lines
+    annotation = rgb(78,78,78, maxColorValue = 255),
+    annotation_line = rgb(169, 169, 169, maxColorValue = 255),
+    special = rgb(157,15,78, maxColorValue = 255),
+    shift_pattern = rgb(190,114,157, maxColorValue = 255),
+    fifteen_more = rgb(58,166,216, maxColorValue = 255),
+    trend_stability = rgb(153,215,216, maxColorValue = 255),
+    normal = rgb(255, 255, 255, maxColorValue = 255),
+    two_of_three = rgb(109,164,47, maxColorValue = 255),
+    runs_signal = rgb(0, 255, 0, maxColorValue = 255)  # Green for runs.signal
   )
 
-  # Prepare data by phase if phase column exists
+  # Split data by phase
   data_list <- split(data, data$phase)
 
-  # Create the initial plot with ggplot2
-  p <- ggplot(data, aes(x = x)) +
+  # Function to apply highlighting rules within each phase
+  apply_highlighting <- function(df) {
+    # Default condition names and colors
+    fill_conditions <- rep("Normal", nrow(df))
+    fill_colors <- rep(colors$normal, nrow(df))
+
+    # Sigma Signal
+    fill_conditions[df$sigma.signal] <- "Sigma Signal"
+    fill_colors[df$sigma.signal] <- colors$special
+
+    # Shift patterns
+    rle_shift <- rle(df$shift)
+    pos <- 1
+    for (i in seq_along(rle_shift$lengths)) {
+      if (!is.na(rle_shift$values[i]) && rle_shift$lengths[i] >= 8) {
+        indices <- pos:(pos + rle_shift$lengths[i] - 1)
+        fill_conditions[indices] <- "Shift"
+        fill_colors[indices] <- colors$shift_pattern
+      }
+      pos <- pos + rle_shift$lengths[i]
+    }
+
+    # Fifteen or more points in a run
+    if ("fifteen_more" %in% names(df) && any(df$fifteen_more, na.rm = TRUE)) {
+      rle_fifteen <- rle(df$fifteen_more)
+      pos <- 1
+      for (i in seq_along(rle_fifteen$lengths)) {
+        if (rle_fifteen$values[i] && rle_fifteen$lengths[i] >= 15) {
+          indices <- pos:(pos + rle_fifteen$lengths[i] - 1)
+          fill_conditions[indices] <- "15+"
+          fill_colors[indices] <- colors$fifteen_more
+        }
+        pos <- pos + rle_fifteen$lengths[i]
+      }
+    }
+
+    # Trend analysis
+    differences <- c(diff(df$y), NA)
+    trends <- ifelse(differences < 0, TRUE, ifelse(differences > 0, FALSE, NA))
+    rle_trend <- rle(trends)
+    pos <- 1
+    for (i in seq_along(rle_trend$lengths)) {
+      if (rle_trend$lengths[i] >= 5) {
+        indices <- pos:(pos + rle_trend$lengths[i] - 1)
+        if (length(differences) >= max(indices) + 1) {
+          indices <- c(indices, max(indices) + 1)
+        }
+        fill_conditions[indices] <- "Trend"
+        fill_colors[indices] <- colors$trend_stability
+      }
+      pos <- pos + rle_trend$lengths[i]
+    }
+
+    # Two out of three rule
+    for (i in 3:nrow(df)) {
+      if (sum(df$two_more[(i-2):i], na.rm = TRUE) >= 2) {
+        if (all(fill_conditions[(i-2):i] == "Normal")) {
+          fill_conditions[(i-2):i] <- "Two Out of Three"
+          fill_colors[(i-2):i] <- colors$two_of_three
+        }
+      }
+    }
+
+    df$fill_conditions <- fill_conditions
+    df$fill_colors <- fill_colors
+
+    # Add border color for runs.signal
+    df$border_color <- ifelse(df$runs.signal, "Runs Signal", "Normal")
+
+    return(df)
+  }
+
+  # Apply highlighting to each phase
+  data_list <- lapply(data_list, apply_highlighting)
+
+  # Combine data back
+  highlighted_data <- do.call(rbind, data_list)
+
+  # Create the plot
+  p <- ggplot(highlighted_data, aes(x = x, y = y)) +
+    lapply(data_list, function(df) {
+      list(
+        geom_line(data = df, aes(y = cl, group = phase), color = colors$cl, size = 1.25),
+        geom_line(data = df, aes(y = lcl, group = phase), color = colors$lcl_ucl, size = 1.25, alpha = 0.5),
+        geom_line(data = df, aes(y = ucl, group = phase), color = colors$lcl_ucl, size = 1.25, alpha = 0.5)
+      )
+    }) +
+    geom_line(aes(group = 1), color = colors$y, size = 1.25) +
+    geom_point(aes(fill = fill_conditions, color = border_color), shape = 21, size = 3) +
+    scale_fill_manual(values = c(
+      "Normal" = colors$normal,
+      "Sigma Signal" = colors$special,
+      "Shift" = colors$shift_pattern,
+      "15+" = colors$fifteen_more,
+      "Trend" = colors$trend_stability,
+      "Two Out of Three" = colors$two_of_three
+    ), name = NULL) +
+    scale_color_manual(values = c("Normal" = colors$y, "Runs Signal" = colors$runs_signal), name = "Border Signal") +
     scale_x_date(name = "Date") +  # Use scale_x_date for date handling
-    theme_minimal() +
+    theme_minimal(base_family = "sans") +
     theme(
       plot.title = element_text(color = colors$title, size = chart_title_size, hjust = 0.5),
       plot.background = element_blank(),
       panel.grid = element_blank(),
       panel.background = element_blank(),
+      legend.position = "bottom",
       axis.title = element_blank(),
       axis.text.x = element_text(angle = 0, vjust = 0.5, color = "darkgray"),  # Set angle to 0 for horizontal text
       axis.text.y = element_text(color = "darkgray"),
@@ -85,19 +145,6 @@ plot_spc_chart <- function(data, chart_title = "", chart_title_size = 14, captio
       plot.caption = element_text(size = caption_size, color = "darkgray", hjust = 1),
       plot.caption.position = "plot"
     )
-
-  # Add phase-based layers
-  for (df in data_list) {
-    p <- p +
-      geom_line(data = df, aes(y = cl, group = 1), color = colors$cl, size = 1.25) +
-      geom_line(data = df, aes(y = lcl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5) +
-      geom_line(data = df, aes(y = ucl, group = 1), color = colors$lcl_ucl, size = 1.25, alpha = 0.5)
-  }
-
-  # Add y line and points last so they're on top
-  p <- p +
-    geom_line(aes(y = y, group = 1), color = colors$y, size = 1.25) +
-    geom_point(aes(y = y), color = colors$y, fill = "white", shape = 21, size = 3)
 
   # Conditionally add chart title if provided
   if (chart_title != "") {

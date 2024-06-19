@@ -41,7 +41,7 @@ If phases are present, it treats each phase as an independent subgroup for apply
 \examples{
 data <- create_spc_data(your_data_frame, 'date', 'value', 'xbar')
 annotations <- data.frame(
-  row_number = c(10, 20),
+  serial_number = c(10, 20),
   label = c("Annotation 1", "Annotation 2"),
   text_size = c(4, 4),
   position_x = c(1, -1),

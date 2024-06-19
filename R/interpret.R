@@ -141,9 +141,24 @@ interpret <- function(data) {
         }
       }
     }
+    # Detect Runs Signal as Range
+    runs_signal_indices <- which(subdata$runs.signal == TRUE)
+    if (length(runs_signal_indices) > 0) {
+      start_index <- runs_signal_indices[1]
+      end_index <- runs_signal_indices[length(runs_signal_indices)]
+      start_date <- subdata$x[start_index]
+      end_date <- subdata$x[end_index]
+      subgroup_number_range <- paste(subdata$phase_number[start_index], subdata$phase_number[end_index], sep = " - ")
+
+      phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Runs Signal",
+                                                       Duration = paste(start_date, end_date, sep = " - "),
+                                                       Phase = phase, PhaseNumber = subgroup_number_range, stringsAsFactors = FALSE))
+    }
+
 
     return(phase_results)
   }
+
 
   # Apply interpretation to each phase
   phase_results_list <- lapply(data_list, interpret_phase)
