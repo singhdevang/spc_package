@@ -1,6 +1,6 @@
 #' Interpret SPC Data for Special Cause Variations with Phase Handling
 #'
-#' This function analyzes SPC data generated from `create_spc_data` or `create_spc_data_pu` to detect special cause variations
+#' This function analyzes SPC data generated from `create_spc_dataframe` or `create_spc_dataframe_pu` to detect special cause variations
 #' such as shifts, trends, and excessive deviations. It identifies significant events based on predefined
 #' criteria and displays these events in a tabular format indicating the type of variation, its duration or specific occurrence point,
 #' and the phase in which it occurred.
@@ -14,7 +14,7 @@
 #'   and `PhaseNumber`, which indicates the subgroup number(s) of the special cause variation.
 #'   For interactive sessions, the results are also displayed using `View` or `print`.
 #' @examples
-#' # Assuming 'spc_data' is a dataframe obtained from `create_spc_data` function
+#' # Assuming 'spc_data' is a dataframe obtained from `create_spc_dataframe` function
 #' spc_data <- data.frame(
 #'   x = seq(as.Date("2020-01-01"), by = "month", length.out = 24),
 #'   shift = c(rep(FALSE, 10), rep(TRUE, 8), rep(FALSE, 6)),
@@ -41,11 +41,14 @@ interpret <- function(data) {
   }
 
   # Initialize an empty data frame to store results
-  results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), PhaseNumber = character(), stringsAsFactors = FALSE)
+  results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), PhaseNumber = character(), SerialNumber = character(), stringsAsFactors = FALSE)
 
-  # Ensure 'phase_number' is present and handle missing values
+  # Ensure 'phase_number' and 'serial_number' are present and handle missing values
   if (!"phase_number" %in% colnames(data)) {
     data$phase_number <- NA_integer_
+  }
+  if (!"serial_number" %in% colnames(data)) {
+    data$serial_number <- NA_integer_
   }
 
   # Split the data by phase
@@ -53,7 +56,7 @@ interpret <- function(data) {
 
   # Function to interpret each phase separately
   interpret_phase <- function(subdata) {
-    phase_results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), PhaseNumber = character(), stringsAsFactors = FALSE)
+    phase_results <- data.frame(SpecialCauseVariation = character(), Duration = character(), Phase = integer(), PhaseNumber = character(), SerialNumber = character(), stringsAsFactors = FALSE)
     phase <- unique(subdata$phase)
 
     # Shift detection logic
@@ -67,9 +70,10 @@ interpret <- function(data) {
         start_date <- subdata$x[start_index]
         end_date <- subdata$x[end_index]
         subgroup_number_range <- paste(subdata$phase_number[start_index], subdata$phase_number[end_index], sep = " - ")
+        serial_number_range <- paste(subdata$serial_number[start_index], subdata$serial_number[end_index], sep = " - ")
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Shift",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, PhaseNumber = subgroup_number_range, stringsAsFactors = FALSE))
+                                                         Phase = phase, PhaseNumber = subgroup_number_range, SerialNumber = serial_number_range, stringsAsFactors = FALSE))
       }
       pos <- pos + rle_shift$lengths[i]
     }
@@ -91,10 +95,11 @@ interpret <- function(data) {
         start_date <- subdata$x[real_indices[1]]
         end_date <- subdata$x[real_indices[length(real_indices)]]
         subgroup_number_range <- paste(subdata$phase_number[real_indices[1]], subdata$phase_number[real_indices[length(real_indices)]], sep = " - ")
+        serial_number_range <- paste(subdata$serial_number[real_indices[1]], subdata$serial_number[real_indices[length(real_indices)]], sep = " - ")
 
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Trend",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, PhaseNumber = subgroup_number_range, stringsAsFactors = FALSE))
+                                                         Phase = phase, PhaseNumber = subgroup_number_range, SerialNumber = serial_number_range, stringsAsFactors = FALSE))
       }
       pos <- pos + rle_trend$lengths[i]
     }
@@ -110,10 +115,11 @@ interpret <- function(data) {
         start_date <- subdata$x[start_index]
         end_date <- subdata$x[end_index]
         subgroup_number_range <- paste(subdata$phase_number[start_index], subdata$phase_number[end_index], sep = " - ")
+        serial_number_range <- paste(subdata$serial_number[start_index], subdata$serial_number[end_index], sep = " - ")
 
         phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "15+",
                                                          Duration = paste(start_date, end_date, sep = " - "),
-                                                         Phase = phase, PhaseNumber = subgroup_number_range, stringsAsFactors = FALSE))
+                                                         Phase = phase, PhaseNumber = subgroup_number_range, SerialNumber = serial_number_range, stringsAsFactors = FALSE))
       }
       pos <- pos + rle_fifteen$lengths[i]
     }
@@ -123,9 +129,10 @@ interpret <- function(data) {
     for (i in sigma_indices) {
       date_point <- subdata$x[i]
       phase_number <- subdata$phase_number[i]
+      serial_number <- subdata$serial_number[i]
       phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Sigma Signal",
                                                        Duration = as.character(date_point),
-                                                       Phase = phase, PhaseNumber = as.character(phase_number), stringsAsFactors = FALSE))
+                                                       Phase = phase, PhaseNumber = as.character(phase_number), SerialNumber = as.character(serial_number), stringsAsFactors = FALSE))
     }
 
     # Apply the 'Two Out of Three' rule
@@ -135,9 +142,10 @@ interpret <- function(data) {
           start_date <- subdata$x[i-2]
           end_date <- subdata$x[i]
           subgroup_number_range <- paste(subdata$phase_number[i-2], subdata$phase_number[i], sep = " - ")
+          serial_number_range <- paste(subdata$serial_number[i-2], subdata$serial_number[i], sep = " - ")
           phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Two Out of Three",
                                                            Duration = paste(start_date, end_date, sep = " - "),
-                                                           Phase = phase, PhaseNumber = subgroup_number_range, stringsAsFactors = FALSE))
+                                                           Phase = phase, PhaseNumber = subgroup_number_range, SerialNumber = serial_number_range, stringsAsFactors = FALSE))
         }
       }
     }
@@ -149,16 +157,15 @@ interpret <- function(data) {
       start_date <- subdata$x[start_index]
       end_date <- subdata$x[end_index]
       subgroup_number_range <- paste(subdata$phase_number[start_index], subdata$phase_number[end_index], sep = " - ")
+      serial_number_range <- paste(subdata$serial_number[start_index], subdata$serial_number[end_index], sep = " - ")
 
       phase_results <- rbind(phase_results, data.frame(SpecialCauseVariation = "Runs Signal",
                                                        Duration = paste(start_date, end_date, sep = " - "),
-                                                       Phase = phase, PhaseNumber = subgroup_number_range, stringsAsFactors = FALSE))
+                                                       Phase = phase, PhaseNumber = subgroup_number_range, SerialNumber = serial_number_range, stringsAsFactors = FALSE))
     }
-
 
     return(phase_results)
   }
-
 
   # Apply interpretation to each phase
   phase_results_list <- lapply(data_list, interpret_phase)
@@ -168,6 +175,9 @@ interpret <- function(data) {
     message("No special cause variation detected; process is stable")
     invisible(NULL)  # Suppress any output other than the message
   } else {
+    # Reorder columns to have SerialNumber as the first column
+    results <- results[, c("SerialNumber", "SpecialCauseVariation", "Duration", "Phase", "PhaseNumber")]
+
     # Print or view results if variations are detected
     if (interactive()) {
       View(results)

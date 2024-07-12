@@ -199,7 +199,7 @@ plot_test_spc_chart <- function(data, chart_title = "", chart_title_size = 14, c
     annotations$label_x <- annotations$x + annotations$position_x
 
     # Adjust starting point of annotation line based on position_y
-    point_radius <- 0.5  # Adjusted for size of the data point
+    point_radius <- 0.85  # Adjusted for size of the data point
     p <- p +
       geom_segment(data = annotations, aes(
         x = x,

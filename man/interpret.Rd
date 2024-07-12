@@ -18,13 +18,13 @@ and \code{PhaseNumber}, which indicates the subgroup number(s) of the special ca
 For interactive sessions, the results are also displayed using \code{View} or \code{print}.
 }
 \description{
-This function analyzes SPC data generated from \code{create_spc_data} or \code{create_spc_data_pu} to detect special cause variations
+This function analyzes SPC data generated from \code{create_spc_dataframe} or \code{create_spc_dataframe_pu} to detect special cause variations
 such as shifts, trends, and excessive deviations. It identifies significant events based on predefined
 criteria and displays these events in a tabular format indicating the type of variation, its duration or specific occurrence point,
 and the phase in which it occurred.
 }
 \examples{
-# Assuming 'spc_data' is a dataframe obtained from `create_spc_data` function
+# Assuming 'spc_data' is a dataframe obtained from `create_spc_dataframe` function
 spc_data <- data.frame(
   x = seq(as.Date("2020-01-01"), by = "month", length.out = 24),
   shift = c(rep(FALSE, 10), rep(TRUE, 8), rep(FALSE, 6)),
